@@ -1,3 +1,11 @@
+# Intellij
+.idea
+
+# Python
+*.pyc
+venv/
+
+
 # Logs
 logs
 *.log
