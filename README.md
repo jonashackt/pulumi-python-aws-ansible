@@ -7,7 +7,7 @@ In contrast to other Infrastructure-as-Code tools, Pulumi uses real programming 
 
 > At the center of Pulumi is an open-source cloud object model & an evaluation runtime (https://www.pulumi.com/docs/intro/concepts/)
 
-This cloud object model is language agnostic to support multiple programming languages at the same time (currently JavaScript, TypeScript, Python & Go). The evaluation runtime is knows about the cloud resources and how to plan, manage & execute them.
+This cloud object model is language agnostic to support multiple programming languages at the same time ([currently Node.js/JavaScript & Python. And there's a Preview for Go and the possibility to implement your own Language](https://www.pulumi.com/docs/intro/languages/)). The evaluation runtime is knows about the cloud resources and how to plan, manage & execute them.
 
 Pulumi Project is a folder with a `Pulumi.yaml` - create with `pulumi new`. 
 
@@ -32,7 +32,7 @@ mkdir pulumi-aws-python-example
 cd pulumi-aws-python-example
 ```
 
-Now create a Pulumi project with: `pulumi new aws-python`. Then you're promted to login to Pulumi, if you run `pulumi new` for the first time:
+Now create a Pulumi project with: `pulumi new aws-python`. Then you're promted to login to Pulumi (for more info about that, visit https://www.pulumi.com/docs/troubleshooting/faq/#how-does-pulumi-depend-on-pulumi-com), if you run `pulumi new` for the first time:
 
 ```
 Manage your Pulumi stacks by logging in.
@@ -90,5 +90,9 @@ To perform an initial deployment, run the following commands:
 
 Then, run 'pulumi up'
 ```
+
+Now you can also login to pulumi.com - I use `jonashackt` as the organisation, so you'll find my projects under: https://app.pulumi.com/jonashackt
+
+![pulumi-com-project-overview](screenshots/pulumi-com-project-overview.png)
 
 To run our first `pulumi up`:
