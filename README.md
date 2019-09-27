@@ -1,4 +1,4 @@
-# pulumi-aws
+# pulumi-example-aws-python
 Example project playing around with Pulumi
 
 ### What is Pulumi?
