@@ -355,6 +355,26 @@ Have a look into your AWS management console and you should see the new instance
 ![first-ec2-instance-running](screenshots/first-ec2-instance-running.png)
 
 
+On console you can also [access the variables exported](https://www.pulumi.com/docs/reference/pkg/python/pulumi/#stack-exports%C2%B6) with `pulumi.export` like:
+
+```
+$ pulumi stack output publicHostName
+ec2-3-120-235-112.eu-central-1.compute.amazonaws.com
+
+# or
+
+$ pulumi stack output publicIp
+3.120.235.112
+```
+
+
+##### Install Docker on EC2 instance
+
+So EC2's running, now we want to install Docker on it. But is there a way on how to issue shell commands and the like with Pulumi?
+
+There's this issue: https://github.com/pulumi/pulumi/issues/99 (still open...)
+
+
 
 ### Test-driven Development with Pulumi
 
@@ -379,6 +399,8 @@ Second interesting point: The docs for the JavaScript/Typescript version of the 
 
 
 ## Links
+
+See example projects https://github.com/pulumi/examples
 
 https://www.pulumi.com/docs/tutorials/aws/ec2-webserver/
 
