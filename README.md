@@ -16,11 +16,47 @@ Pulumi Stacks are like stages (dev, stage, production).
 
 ## Prerequisites
 
+#### Install Pulumi
+
 https://www.pulumi.com/docs/get-started/aws/
 
 Install Pulumi SDK:
 
 `brew install pulumi`
+
+
+If you choose to use Python as your preferred language for Pulumi, you should also install Python:
+
+`brew install python`
+
+
+#### Configure AWS credentials 
+
+Like already described in https://github.com/jonashackt/molecule-ansible-docker-vagrant#install--configure-aws-cli, we need to do the following:
+
+
+First we need to sure to have the [AWS CLI installed](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html). We can do this via Python pip package manager with (or any other system package manager):
+ 
+```
+pip3 install awscli
+```
+ 
+Now we should check, if AWS CLI was successfully installed. The `aws --version` command should print out sometime like:
+
+```
+$ aws --version
+aws-cli/1.16.255 Python/3.7.4 Darwin/18.7.0 botocore/1.12.245
+```
+
+Now configure the AWS CLI to use the correct credentials. [According to the AWS docs](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html#cli-quick-configuration), the fastest way to accomplish that is to run `aws configure`:
+
+```
+$ aws configure
+AWS Access Key ID [None]: AKIAIOSFODNN7EXAMPLE
+AWS Secret Access Key [None]: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+Default region name [None]: eu-central-1
+Default output format [None]: json
+```
 
 
 ## An example Project with AWS & Python
@@ -94,6 +130,7 @@ Then, run 'pulumi up'
 Now you can also login to pulumi.com - I use `jonashackt` as the organisation, so you'll find my projects under: https://app.pulumi.com/jonashackt
 
 ![pulumi-com-project-overview](screenshots/pulumi-com-project-overview.png)
+
 
 
 ### A clean Python environment with virtualenv
@@ -201,13 +238,150 @@ That's it: this is our first Cloud resource created by Pulumi!
 
 
 
+### A comparable Use Case
+
+As we want to compare Pulumi (in terms of apples vs. bananas ;P ) with other Infrastructure-as-Code tools like Ansible. Therefore we should pick a use case like the one in https://github.com/jonashackt/molecule-ansible-docker-vagrant - which is "Installing Docker on an EC2 Ubuntu box".
+
+Let's delete the initial stack and S3 bucket first. To destroy an existing stack and its resources, simply run:
+
+```
+pulumi destroy
+```
+
+##### Build a common ground: Create an EC2 instance with SSH access
+
+Let's have a look into the tutorials: https://www.pulumi.com/docs/tutorials/aws/ec2-webserver/
+
+and the Pulumi API reference -> https://www.pulumi.com/docs/reference/pkg/python/pulumi_aws/
+
+Yeah, now we should be able to setup our first EC2 instance with Pulumi. Open [__main__.py](__main__.py) in your IDE and add some code:
+
+```
+import pulumi
+import pulumi_aws as aws
+from pulumi_aws import ec2
+
+# AMI image configuration
+ec2_image_id = 'ami-0cc0a36f626a4fdf5'
+ec2_image_owner = '099720109477'
+ec2_instance_size = 't2.micro'
+ec2_instance_name = 'aws-ec2-ubuntu'
+
+# Lets use Pulumi to get the AMI image
+pulumi_ami = aws.get_ami(
+                    filters = [{ "name": "image-id", "values": [ec2_image_id]}],
+                    owners  = [ec2_image_owner])
+
+# Create a EC2 security group
+ssh_port = 22
+
+pulumi_security_group = ec2.SecurityGroup(
+                            'pulumi-secgrp',
+                            description = 'Enable HTTP access',
+                            ingress = [
+                                { 'protocol': 'tcp', 'from_port': ssh_port, 'to_port': ssh_port, 'cidr_blocks': ['0.0.0.0/0'] }
+                            ]
+)
+
+# Create EC2 instance
+ec2_instance = ec2.Instance(
+                    ec2_instance_name,
+                    instance_type = ec2_instance_size,
+                    security_groups = [pulumi_security_group.name],
+                    ami = pulumi_ami.id
+)
+
+pulumi.export('publicIp', ec2_instance.public_ip)
+pulumi.export('publicHostName', ec2_instance.public_dns)
+
+
+```
+
+> Maybe you find yourself lost in the Pulumi documentation like me: Many things are simply not available right now. E.g. the Pulumi AWS provider is derived from the Terraform AWS provider - so have a look there: https://www.terraform.io/docs/providers/aws/index.html!
+> If you look for aws.get_ami special `owners` parameter, have a look at https://www.terraform.io/docs/providers/aws/d/ami.html
+
+Let's first choose an AMI as described in [Choosing an Ubuntu 18.04 AMI](https://github.com/jonashackt/molecule-ansible-docker-vagrant#choosing-an-ubuntu-1804-ami) using the [ubuntu Amazon EC2 AMI Locator](https://cloud-images.ubuntu.com/locator/ec2/). Combine your AWS region and the desired Ubuntu version and type this into the search box:
+
+```
+eu-central-1 18.04 LTS
+```
+
+Now choose the latest AMI id with the Instance Type `hvm:ebs-ssd` like this: `ami-0cc0a36f626a4fdf5`
+
+> Preventing the "Exception: invoke of aws:index/getAmi:getAmi failed: "owners": required field is not set ()"
+
+If you're also just starting with Pulumi, you may also wonder if we __really need__ the `owners` parameter in the module `aws.get_ami`.
+
+Well - this one is required - have a look at https://www.terraform.io/docs/providers/aws/d/ami.html#owners. So to prevent the mentioned Exception we need to also provide the valid `owners` id for the Ubuntu image. Having a look at the AWS docs, these ids could be found occasionally: https://docs.aws.amazon.com/de_de/AWSEC2/latest/UserGuide/finding-an-ami.html#finding-quick-start-ami
+
+The Ubuntu owners id is `099720109477` for example, the RedHat AMIs need the `309956199498` and so on. Amazon images simply need `amazon` or `aws-marketplace`, Microsoft images have `microsoft` also.
+
+Now give your Pulumi code a try and fire it up with `pulumi up`. This should give something like:
+
+```
+$ pulumi up
+Previewing update (dev):
+
+     Type                      Name                           Plan
+ +   pulumi:pulumi:Stack       pulumi-example-aws-python-dev  create
+ +   ├─ aws:ec2:SecurityGroup  pulumi-secgrp                  create
+ +   └─ aws:ec2:Instance       aws-ec2-ubuntu                 create
+
+Resources:
+    + 3 to create
+
+Do you want to perform this update? yes
+Updating (dev):
+
+     Type                      Name                           Status
+ +   pulumi:pulumi:Stack       pulumi-example-aws-python-dev  created
+ +   ├─ aws:ec2:SecurityGroup  pulumi-secgrp                  created
+ +   └─ aws:ec2:Instance       aws-ec2-ubuntu                 created
+
+Outputs:
+    publicHostName: "ec2-3-120-32-194.eu-central-1.compute.amazonaws.com"
+    publicIp      : "3.120.32.194"
+
+Resources:
+    + 3 created
+
+Duration: 33s
+
+Permalink: https://app.pulumi.com/jonashackt/pulumi-example-aws-python/dev/updates/3
+```
+
+Have a look into your AWS management console and you should see the new instance:
+
+![first-ec2-instance-running](screenshots/first-ec2-instance-running.png)
+
 
 
 ### Test-driven Development with Pulumi
 
+https://www.pulumi.com/blog/testing-your-infrastructure-as-code-with-pulumi/
+
+
+Testinfra??! Pytest
+
+
+### Run a Dockerized application on AWS with Pulumi
+
+Example app: https://github.com/jonashackt/spring-boot-vuejs
+
+Pulumi API reference for the Pulumi Docker provider: https://www.pulumi.com/docs/reference/pkg/python/pulumi_docker/ (interestingly this Pulumi docker provider is derived from the [Terraform Docker provider](https://github.com/terraform-providers/terraform-provider-docker))
+
+Second interesting point: The docs for the JavaScript/Typescript version of the Pulumi Docker provider are much nicer to view: https://www.pulumi.com/docs/reference/pkg/nodejs/pulumi/docker/
+
+
+
+### Using AWS Fargate to run a Dockerized application
+
+
 
 ## Links
 
-Also see https://www.pulumi.com/docs/tutorials/aws/ec2-webserver/
+https://www.pulumi.com/docs/tutorials/aws/ec2-webserver/
+
+https://blog.scottlowe.org/2019/05/05/a-sandbox-for-learning-pulumi/
 
 
