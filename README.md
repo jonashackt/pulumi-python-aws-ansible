@@ -1,4 +1,8 @@
 # pulumi-example-aws-python
+[![Build Status](https://travis-ci.org/jonashackt/pulumi-example-aws-python.svg?branch=master)](https://travis-ci.org/jonashackt/pulumi-example-aws-python)
+[![versionansible](https://img.shields.io/badge/pulumi-1.3.0-brightgreen.svg)](https://docs.ansible.com/ansible/latest/index.html)
+[![versionawscli](https://img.shields.io/badge/awscli-1.16.255-brightgreen.svg)](https://aws.amazon.com/cli/)
+
 Example project playing around with Pulumi
 
 ### What is Pulumi?
@@ -425,6 +429,7 @@ install:
 ...
   # Install Pulumi SDK
   - pip install pulumi virtualenv
+  - pulumi version
 ```
 
 As you see, we also install `virtualenv` for later usage.

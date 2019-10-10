@@ -18,6 +18,7 @@ install:
 
   # Install Pulumi SDK
   - pip install pulumi virtualenv
+  - pulumi version
   # login to app.pulumi.com with the predefined PULUMI_ACCESS_TOKEN
   - pulumi login
 
