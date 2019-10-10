@@ -441,6 +441,7 @@ script:
 
 As you see, we add the Pulumi executable to the Travis build environments' PATH, otherwise we run into `pulumi: command not found` errors. We also log in to app.pulumi.com.
 
+
 ##### Fire up Pulumi on TravisCI
 
 Now we're nearly there! But as we're running on TravisCI, we should skip the virtualenv usage - since TravisCI's Python environment is already based on a virtualenv configuration (see https://docs.travis-ci.com/user/languages/python/#travis-ci-uses-isolated-virtualenvs).
@@ -472,6 +473,135 @@ script:
 
 Mind the `--yes` switch at the end of the commands to automatically approve and perform the update/destruction after previewing it 
 
+You may now have a look into your TravisCI build ([like this](https://travis-ci.org/jonashackt/pulumi-example-aws-python/builds/596168913)). It should show an output similar to this at the end of the log:
+
+```
+$ 
+
+The command "" exited with 0.
+
+0.69s$ pulumi stack select dev
+
+The command "pulumi stack select dev" exited with 0.
+
+49.93s$ pulumi up --yes
+
+Previewing update (dev):
+
+ +  pulumi:pulumi:Stack pulumi-example-aws-python-dev create 
+
+ +  aws:ec2:SecurityGroup pulumi-secgrp create 
+
+ +  aws:ec2:Instance aws-ec2-ubuntu create 
+
+ +  pulumi:pulumi:Stack pulumi-example-aws-python-dev create 
+
+ 
+
+Resources:
+
+    + 3 to create
+
+Updating (dev):
+
+ +  pulumi:pulumi:Stack pulumi-example-aws-python-dev creating 
+
+ +  aws:ec2:SecurityGroup pulumi-secgrp creating 
+
+ +  aws:ec2:SecurityGroup pulumi-secgrp created 
+
+ +  aws:ec2:Instance aws-ec2-ubuntu creating 
+
+@ Updating.....
+
+ +  aws:ec2:Instance aws-ec2-ubuntu created 
+
+ +  pulumi:pulumi:Stack pulumi-example-aws-python-dev created 
+
+ 
+
+Outputs:
+
+    publicHostName: "ec2-18-195-71-41.eu-central-1.compute.amazonaws.com"
+
+    publicIp      : "18.195.71.41"
+
+Resources:
+
+    + 3 created
+
+Duration: 45s
+
+Permalink: https://app.pulumi.com/jonashackt/pulumi-example-aws-python/dev/updates/11
+
+The command "pulumi up --yes" exited with 0.
+
+58.06s$ pulumi destroy --yes
+
+Previewing destroy (dev):
+
+ -  aws:ec2:Instance aws-ec2-ubuntu delete 
+
+ -  aws:ec2:SecurityGroup pulumi-secgrp delete 
+
+ -  pulumi:pulumi:Stack pulumi-example-aws-python-dev delete 
+
+ -  pulumi:pulumi:Stack pulumi-example-aws-python-dev delete 
+
+ 
+
+Outputs:
+
+  - publicHostName: "ec2-18-195-71-41.eu-central-1.compute.amazonaws.com"
+
+  - publicIp      : "18.195.71.41"
+
+Resources:
+
+    - 3 to delete
+
+Destroying (dev):
+
+ -  aws:ec2:Instance aws-ec2-ubuntu deleting 
+
+@ Destroying.....
+
+ -  aws:ec2:Instance aws-ec2-ubuntu deleted 
+
+ -  aws:ec2:SecurityGroup pulumi-secgrp deleting 
+
+ -  aws:ec2:SecurityGroup pulumi-secgrp deleted 
+
+ -  pulumi:pulumi:Stack pulumi-example-aws-python-dev deleting 
+
+ -  pulumi:pulumi:Stack pulumi-example-aws-python-dev deleted 
+
+ 
+
+Outputs:
+
+  - publicHostName: "ec2-18-195-71-41.eu-central-1.compute.amazonaws.com"
+
+  - publicIp      : "18.195.71.41"
+
+Resources:
+
+    - 3 deleted
+
+Duration: 56s
+
+Permalink: https://app.pulumi.com/jonashackt/pulumi-example-aws-python/dev/updates/12
+
+The resources in the stack have been deleted, but the history and configuration associated with the stack are still maintained. 
+
+If you want to remove the stack completely, run 'pulumi stack rm dev'.
+
+The command "pulumi destroy --yes" exited with 0.
+
+Done. Your build exited with 0.
+```
+
+You can also have a look into the AWS management console to see the EC2 instance beeing created and then destroyed again.
 
 
 
