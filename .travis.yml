@@ -16,9 +16,11 @@ install:
   # show AWS CLI config
   - aws configure list
 
-  # Install Pulumi SDK
-  - pip install pulumi virtualenv
+  # Install Pulumi SDK with the installation script from https://www.pulumi.com/docs/get-started/install/#installation-script
+  - curl -fsSL https://get.pulumi.com | sh
   - pulumi version
+  # Install virtualenv for later usage
+  - pip install virtualenv
   # login to app.pulumi.com with the predefined PULUMI_ACCESS_TOKEN
   - pulumi login
 

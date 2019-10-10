@@ -22,11 +22,15 @@ Pulumi Stacks are like stages (dev, stage, production).
 
 #### Install Pulumi
 
-https://www.pulumi.com/docs/get-started/aws/
+https://www.pulumi.com/docs/get-started/install/
 
-Install Pulumi SDK:
+Install Pulumi SDK on MacOS:
 
 `brew install pulumi`
+
+or on Linux:
+
+`curl -fsSL https://get.pulumi.com | sh`
 
 
 If you choose to use Python as your preferred language for Pulumi, you should also install Python:
@@ -427,9 +431,11 @@ Now we should also install the Pulumi SDK - as we already did locally. This time
 ```
 install:
 ...
-  # Install Pulumi SDK
-  - pip install pulumi virtualenv
+  # Install Pulumi SDK with the installation script from https://www.pulumi.com/docs/get-started/install/#installation-script
+  - curl -fsSL https://get.pulumi.com | sh
   - pulumi version
+  # Install virtualenv for later usage
+  - pip install virtualenv
 ```
 
 As you see, we also install `virtualenv` for later usage.
