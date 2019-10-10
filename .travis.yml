@@ -1,0 +1,25 @@
+---
+sudo: false
+language: python
+
+env:
+  - BOTO_CONFIG="/dev/null"
+
+install:
+  - pip install pulumi
+
+  # install AWS related packages
+  - pip install boto boto3
+  - pip install --upgrade awscli
+  # configure AWS CLI
+  - aws configure set aws_access_key_id $AWS_ACCESS_KEY
+  - aws configure set aws_secret_access_key $AWS_SECRET_KEY
+  - aws configure set default.region eu-central-1
+  # show AWS CLI config
+  - aws configure list
+
+script:
+  # Run Pulumi unattended
+  - pulumi up --yes
+  # After everything has been created, we should also destroy the infrastructure again
+  - pulumi destroy --yes

@@ -368,11 +368,61 @@ $ pulumi stack output publicIp
 ```
 
 
+### Run Pulumi with Travis
+
+Now that we're able to run our Pulumi code against AWS, we should also configure Travis to do the job for us every time we push our code.
+
+Most of the needed parts on how to execute a Python library on Travis to connect to AWS has been already described here: https://github.com/jonashackt/molecule-ansible-docker-vagrant#use-travisci-to-execute-molecule-with-ec2-infrastructure
+
+So let's create a [.travis.yml](.travis.yml) first:
+
+```yaml
+sudo: false
+language: python
+
+env:
+- BOTO_CONFIG="/dev/null"
+
+install:
+- pip install pulumi
+
+# install AWS related packages
+- pip install boto boto3
+- pip install --upgrade awscli
+# configure AWS CLI
+- aws configure set aws_access_key_id $AWS_ACCESS_KEY
+- aws configure set aws_secret_access_key $AWS_SECRET_KEY
+- aws configure set default.region eu-central-1
+# show AWS CLI config
+- aws configure list
+
+script:
+# Run Pulumi unattended
+- pulumi up --yes
+# After everything has been created, we should also destroy the infrastructure again
+- pulumi destroy --yes
+
+```
+
+After that, we should activate TravisCI for our project at https://travis-ci.org/account/repositories. Now we can switch over to the settings page of our Travis configuration at https://travis-ci.org/jonashackt/pulumi-example-aws-python/settings and create the needed environment variables `AWS_ACCESS_KEY` & `AWS_SECRET_KEY` for the `aws configure set` command:
+
+![travis-env-aws-vars](screenshots/travis-env-aws-vars.png)
+
+To avoid [the knows problems with boto (the AWS python client) on Travis](aus dem Weg gehen), we also configure the `BOTO_CONFIG="/dev/null"` environment variable directly inside our [.travis.yml](.travis.yml).
+
+Now we should also install the Pulumi SDK - as we already did locally. This time, we use Python's pip to do that for us: `pip install pulumi`
+
+
+
 ##### Install Docker on EC2 instance
 
 So EC2's running, now we want to install Docker on it. But is there a way on how to issue shell commands and the like with Pulumi?
 
 There's this issue: https://github.com/pulumi/pulumi/issues/99 (still open...)
+
+
+
+
 
 
 
