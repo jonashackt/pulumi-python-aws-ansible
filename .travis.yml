@@ -16,6 +16,8 @@ install:
   # show AWS CLI config
   - aws configure list
 
+
+script:
   # Install Pulumi SDK with the installation script from https://www.pulumi.com/docs/get-started/install/#installation-script
   - curl -fsSL https://get.pulumi.com | sh
   # Add Pulumi to Travis' PATH so the executable could be found
@@ -26,8 +28,6 @@ install:
   # login to app.pulumi.com with the predefined PULUMI_ACCESS_TOKEN
   - pulumi login
 
-
-script:
   # Configure isolated Python environment
   - virtualenv -p python3 venv
   - source venv/bin/activate
