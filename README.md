@@ -429,39 +429,35 @@ To avoid [the knows problems with boto (the AWS python client) on Travis](aus de
 Now we should also install the Pulumi SDK - as we already did locally. This time, we use Python's pip to do that for us: 
 
 ```
-install:
-...
+script:
   # Install Pulumi SDK with the installation script from https://www.pulumi.com/docs/get-started/install/#installation-script
   - curl -fsSL https://get.pulumi.com | sh
   # Add Pulumi to Travis' PATH so the executable could be found
   - export PATH=$PATH:/home/travis/.pulumi/bin
   - pulumi version
-  # Install virtualenv for later usage
-  - pip install virtualenv
+  # login to app.pulumi.com with the predefined PULUMI_ACCESS_TOKEN
+  - pulumi login
 ```
 
-As you see, we install `virtualenv` for later usage. Also wwe add the Pulumi executable to the Travis build environments' PATH, otherwise we run into `pulumi: command not found` errors.
-
-Logging in to app.pulumi.com should be easy now:
-
-```
-install:
-...
-# login to app.pulumi.com with the predefined PULUMI_ACCESS_TOKEN
-- pulumi login
-```
+As you see, we add the Pulumi executable to the Travis build environments' PATH, otherwise we run into `pulumi: command not found` errors. We also log in to app.pulumi.com.
 
 ##### Fire up Pulumi on TravisCI
 
-Now we're nearly there! All that's left, is to configure our isolated Python environment using `virtualenv`:
+Now we're nearly there! But as we're running on TravisCI, we should skip the virtualenv usage - since TravisCI's Python environment is already based on a virtualenv configuration (see https://docs.travis-ci.com/user/languages/python/#travis-ci-uses-isolated-virtualenvs).
+Therefore we only need to install the libraries needed via `pip install -r requirements.txt`:
 
 ```yaml
 script:
-  # Configure isolated Python environment
-  - virtualenv -p python3 venv
-  - source venv/bin/activate
-  - pip3 install -r requirements.txt
+...
+  # skip virtualenv in virtualenv Travis inception (see https://docs.travis-ci.com/user/languages/python/#travis-ci-uses-isolated-virtualenvs)
+  # and simply install pip libraries directly (otherwise pulumi: command not found error will come after us again)
+  - pip install -r requirements.txt
+
+  # Select your Pulumi projects' stack
+  - pulumi stack select dev
 ```
+
+Before running `pulumi up`, we have to select the stack Pulumi should use. Otherwise we'll run into `error: no stack selected;` errors. You can list your stacks on the command line with `pulumi stack ls` or have a look into the Pulumi online portal at https://app.pulumi.com/yourUserNameHere.
 
 The final step then is to fire up Pulumi (and destroy the infrastructure again after it was created to prevent unnecessary costs):
 
