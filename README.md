@@ -433,12 +433,14 @@ install:
 ...
   # Install Pulumi SDK with the installation script from https://www.pulumi.com/docs/get-started/install/#installation-script
   - curl -fsSL https://get.pulumi.com | sh
+  # Add Pulumi to Travis' PATH so the executable could be found
+  - export PATH=$PATH:/home/travis/.pulumi/bin
   - pulumi version
   # Install virtualenv for later usage
   - pip install virtualenv
 ```
 
-As you see, we also install `virtualenv` for later usage.
+As you see, we install `virtualenv` for later usage. Also wwe add the Pulumi executable to the Travis build environments' PATH, otherwise we run into `pulumi: command not found` errors.
 
 Logging in to app.pulumi.com should be easy now:
 

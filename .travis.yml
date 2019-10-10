@@ -18,6 +18,8 @@ install:
 
   # Install Pulumi SDK with the installation script from https://www.pulumi.com/docs/get-started/install/#installation-script
   - curl -fsSL https://get.pulumi.com | sh
+  # Add Pulumi to Travis' PATH so the executable could be found
+  - export PATH=$PATH:/home/travis/.pulumi/bin
   - pulumi version
   # Install virtualenv for later usage
   - pip install virtualenv
