@@ -23,15 +23,12 @@ script:
   # Add Pulumi to Travis' PATH so the executable could be found
   - export PATH=$PATH:/home/travis/.pulumi/bin
   - pulumi version
-  # Install virtualenv for later usage
-  - pip install virtualenv
   # login to app.pulumi.com with the predefined PULUMI_ACCESS_TOKEN
   - pulumi login
 
-  # Configure isolated Python environment
-  - virtualenv -p python3 venv
-  - source venv/bin/activate
-  - pip3 install -r requirements.txt
+  # skip virtualenv in virtualenv Travis inception (see https://docs.travis-ci.com/user/languages/python/#travis-ci-uses-isolated-virtualenvs)
+  # and simply install pip libraries directly (otherwise pulumi: command not found error will come after us again)
+  - pip install -r requirements.txt
 
   # Run Pulumi unattended
   - pulumi up --yes
