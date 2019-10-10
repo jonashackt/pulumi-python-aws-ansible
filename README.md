@@ -374,7 +374,10 @@ Now that we're able to run our Pulumi code against AWS, we should also configure
 
 Most of the needed parts on how to execute a Python library on Travis to connect to AWS has been already described here: https://github.com/jonashackt/molecule-ansible-docker-vagrant#use-travisci-to-execute-molecule-with-ec2-infrastructure
 
-So let's create a [.travis.yml](.travis.yml) first:
+
+##### Configure TravisCI to connect to AWS & app.pulumi.com
+
+So let's create a [.travis.yml](.travis.yml), that doesn't contain so much in the first place:
 
 ```yaml
 sudo: false
@@ -382,10 +385,23 @@ language: python
 
 env:
 - BOTO_CONFIG="/dev/null"
+```
 
+After that, we should activate TravisCI for our project at https://travis-ci.org/account/repositories. 
+
+And we should already now think about the needed Pulumi login to `app.pulumi.com`, which could be done by defining the `PULUMI_ACCESS_TOKEN` variable, that needs to contain a correct access token. To create a Pulumi access token, head over to https://app.pulumi.com/yourUserNameHere/settings/tokens and click on `NEW ACCESS TOKEN`:
+
+![app-pulumi-com-access-token](screenshots/app-pulumi-com-access-token.png)
+
+Now we can switch over to the settings page of our Travis configuration at https://travis-ci.org/jonashackt/pulumi-example-aws-python/settings and create the needed environment variables `AWS_ACCESS_KEY` & `AWS_SECRET_KEY` for the `aws configure set` command and the `PULUMI_ACCESS_TOKEN` variable:
+
+![travis-env-aws-pulumi-access-vars](screenshots/travis-env-aws-pulumi-access-vars.png)
+
+
+Inside the `install` section of our `.travis.yml` we are now able to install and configure the boto packages & the AWS CLI, which Pulumi later uses to communicate with AWS:
+
+```yaml
 install:
-- pip install pulumi
-
 # install AWS related packages
 - pip install boto boto3
 - pip install --upgrade awscli
@@ -395,26 +411,62 @@ install:
 - aws configure set default.region eu-central-1
 # show AWS CLI config
 - aws configure list
-
-script:
-# Run Pulumi unattended
-- pulumi up --yes
-# After everything has been created, we should also destroy the infrastructure again
-- pulumi destroy --yes
-
 ```
 
-After that, we should activate TravisCI for our project at https://travis-ci.org/account/repositories. Now we can switch over to the settings page of our Travis configuration at https://travis-ci.org/jonashackt/pulumi-example-aws-python/settings and create the needed environment variables `AWS_ACCESS_KEY` & `AWS_SECRET_KEY` for the `aws configure set` command:
-
-![travis-env-aws-vars](screenshots/travis-env-aws-vars.png)
-
-To avoid [the knows problems with boto (the AWS python client) on Travis](aus dem Weg gehen), we also configure the `BOTO_CONFIG="/dev/null"` environment variable directly inside our [.travis.yml](.travis.yml).
-
-Now we should also install the Pulumi SDK - as we already did locally. This time, we use Python's pip to do that for us: `pip install pulumi`
+To avoid [the knows problems with boto (the AWS python client) on Travis](aus dem Weg gehen), we already defined `sudo: false` and configured the `BOTO_CONFIG="/dev/null"` environment variable directly inside our [.travis.yml](.travis.yml). With that our AWS communication should work like a charm.
 
 
+##### Install & configure Pulumi on TravisCI
 
-##### Install Docker on EC2 instance
+Now we should also install the Pulumi SDK - as we already did locally. This time, we use Python's pip to do that for us: 
+
+```
+install:
+...
+  # Install Pulumi SDK
+  - pip install pulumi virtualenv
+```
+
+As you see, we also install `virtualenv` for later usage.
+
+Logging in to app.pulumi.com should be easy now:
+
+```
+install:
+...
+# login to app.pulumi.com with the predefined PULUMI_ACCESS_TOKEN
+- pulumi login
+```
+
+##### Fire up Pulumi on TravisCI
+
+Now we're nearly there! All that's left, is to configure our isolated Python environment using `virtualenv`:
+
+```yaml
+script:
+  # Configure isolated Python environment
+  - virtualenv -p python3 venv
+  - source venv/bin/activate
+  - pip3 install -r requirements.txt
+```
+
+The final step then is to fire up Pulumi (and destroy the infrastructure again after it was created to prevent unnecessary costs):
+
+```yaml
+script:
+...
+  # Run Pulumi unattended
+  - pulumi up --yes
+  # After everything has been created, we should also destroy the infrastructure again
+  - pulumi destroy --yes
+```
+
+Mind the `--yes` switch at the end of the commands to automatically approve and perform the update/destruction after previewing it 
+
+
+
+
+### Install Docker on EC2 instance
 
 So EC2's running, now we want to install Docker on it. But is there a way on how to issue shell commands and the like with Pulumi?
 

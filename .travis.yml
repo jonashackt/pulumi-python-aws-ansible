@@ -6,8 +6,6 @@ env:
   - BOTO_CONFIG="/dev/null"
 
 install:
-  - pip install pulumi
-
   # install AWS related packages
   - pip install boto boto3
   - pip install --upgrade awscli
@@ -18,7 +16,18 @@ install:
   # show AWS CLI config
   - aws configure list
 
+  # Install Pulumi SDK
+  - pip install pulumi virtualenv
+  # login to app.pulumi.com with the predefined PULUMI_ACCESS_TOKEN
+  - pulumi login
+
+
 script:
+  # Configure isolated Python environment
+  - virtualenv -p python3 venv
+  - source venv/bin/activate
+  - pip3 install -r requirements.txt
+
   # Run Pulumi unattended
   - pulumi up --yes
   # After everything has been created, we should also destroy the infrastructure again
