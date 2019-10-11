@@ -3,19 +3,11 @@
 [![versionansible](https://img.shields.io/badge/pulumi-1.3.0-brightgreen.svg)](https://docs.ansible.com/ansible/latest/index.html)
 [![versionawscli](https://img.shields.io/badge/awscli-1.16.255-brightgreen.svg)](https://aws.amazon.com/cli/)
 
-Example project playing around with Pulumi
+Example project showing how to use Pulumi locally & with TravisCI to create Infrastructure on AWS 
 
-### What is Pulumi?
+[![asciicast](https://asciinema.org/a/273687.svg)](https://asciinema.org/a/273687)
 
-In contrast to other Infrastructure-as-Code tools, Pulumi uses real programming languages instead of YAML to define infrastructure code:
-
-> At the center of Pulumi is an open-source cloud object model & an evaluation runtime (https://www.pulumi.com/docs/intro/concepts/)
-
-This cloud object model is language agnostic to support multiple programming languages at the same time ([currently Node.js/JavaScript & Python. And there's a Preview for Go and the possibility to implement your own Language](https://www.pulumi.com/docs/intro/languages/)). The evaluation runtime is knows about the cloud resources and how to plan, manage & execute them.
-
-Pulumi Project is a folder with a `Pulumi.yaml` - create with `pulumi new`. 
-
-Pulumi Stacks are like stages (dev, stage, production).
+See https://github.com/jonashackt/pulumi-talk#what-is-pulumi for more info on "What is Pulumi?".
 
 
 ## Prerequisites
