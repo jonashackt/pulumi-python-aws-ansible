@@ -601,8 +601,41 @@ You can also have a look into the AWS management console to see the EC2 instance
 
 So EC2's running, now we want to install Docker on it. But is there a way on how to issue shell commands and the like with Pulumi?
 
-There's this issue: https://github.com/pulumi/pulumi/issues/99 (still open...)
+The answer is: NO! There's currently no way to do this (see https://github.com/pulumi/pulumi/issues/99).  
 
+If you want to know more about that topic, have a look into: https://github.com/jonashackt/pulumi-talk#provision-yes-configure-no
+
+At the end, [Pulumi website tells us](https://www.pulumi.com/docs/intro/vs/chef_puppet_etc/) how to deal with such a problem:
+ 
+> Simply use Chef, Puppet, Ansible or Salt here!
+
+Ok, since Ansible leads the pack, we'll use that right away!
+
+
+##### Install Ansible & create a role to install Docker
+
+First we should have Ansible installed on our system:
+
+> Please don´t install Ansible and Molecule with homebrew on Mac, but always with pip3 since you only get old versions and need to manually install testinfra, ansible, flake8 and other packages
+
+`pip install ansible`
+
+Second we need a Ansible role that installs Docker on Ubuntu for us. That problem is already solved again in https://github.com/jonashackt/molecule-ansible-docker-vagrant 
+But since we don't want to copy the role, we use Ansible-Galaxy CLI to do that for us. [There's a nice not so much advertised feature](https://docs.ansible.com/ansible/latest/reference_appendices/galaxy.html#installing-multiple-roles-from-a-file) of `ansible-galaxy`, where you only have to provide a `requirements.yml` with the needed role with their git urls. So let's create our own [requirements.yml](requirements.yml):
+
+```yaml
+# dependency to docker role
+- src: https://github.com/jonashackt/molecule-ansible-docker-vagrant
+  name: docker
+```
+
+Now use `ansible-galaxy` CLI to download the role into the standard `/roles` directory, where your play/role could use it:
+
+```
+ansible-galaxy install -r requirements.yml -p roles/
+```
+
+Now the Ansible role should reside at [roles/docker/tasks/main.yml](roles/docker/tasks/main.yml).
 
 
 

@@ -6,6 +6,8 @@
 *.pyc
 venv/
 
+# Ignore downloaded Ansible roles
+roles
 
 # Logs
 logs
