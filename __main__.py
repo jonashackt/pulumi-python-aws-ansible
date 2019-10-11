@@ -18,9 +18,12 @@ pulumi_ami = aws.get_ami(
 # Create a EC2 security group
 pulumi_security_group = ec2.SecurityGroup(
                             'pulumi-secgrp',
-                            description = 'Enable HTTP access',
+                            description = 'pulumi: enable SSH access & outgoing connections',
                             ingress = [
                                 { 'protocol': 'tcp', 'from_port': ec2_ssh_port, 'to_port': ec2_ssh_port, 'cidr_blocks': ['0.0.0.0/0'] }
+                            ],
+                            egress = [
+                                { 'protocol': '-1', 'from_port': 0, 'to_port': 0, 'cidr_blocks': ['0.0.0.0/0'] }
                             ]
 )
 

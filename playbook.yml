@@ -27,12 +27,10 @@
         timeout: 320
 
     # Since the docker role needs facts like ansible_distribution & ansible_lsb.codename, we need to gather those facts beforehand
-    # see https://github.com/ansible/ansible/issues/27875#issuecomment-321418470 on how to gather facts,
-    # when gather_facts is globally set to false
+    # from our delegate_to host (EC2 instance)
     - name: Gather facts of Pulumi created EC2 instance for later role execution
       setup:
       delegate_to: "{{ ec2_public_ip }}"
-      delegate_facts: True
       vars:
         ansible_ssh_private_key_file: "{{ keypair_path }}"
         ansible_user: ubuntu
@@ -41,7 +39,7 @@
       import_role:
         name: docker
       delegate_to: "{{ ec2_public_ip }}"
-      delegate_facts: True
+      become: true
       vars:
         ansible_ssh_private_key_file: "{{ keypair_path }}"
         ansible_user: ubuntu

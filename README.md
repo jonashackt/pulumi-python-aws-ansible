@@ -133,7 +133,7 @@ Now you can also login to pulumi.com - I use `jonashackt` as the organisation, s
 
 
 
-### A clean Python environment with virtualenv
+#### A clean Python environment with virtualenv
 
 Before running `pulumi up`, you should install [virtualenv](https://virtualenv.pypa.io/en/latest/installation/), which is basically a project local dependency management for pip packages (this is also referred to as a good Python package dependency user style). If you're a Maven, Gradle, NPM user - think of a project local directory, where the all your dependecies are downloaded:
 
@@ -175,7 +175,7 @@ pip3 install -r requirements.txt
 ```
 
 
-### Pulumi first run
+#### Pulumi first run
 
 Now we should have everything prepared to run Pulumi with `pulumi up`:
 
@@ -238,7 +238,7 @@ That's it: this is our first Cloud resource created by Pulumi!
 
 
 
-### A comparable Use Case
+## A comparable Use Case
 
 As we want to compare Pulumi (in terms of apples vs. bananas ;P ) with other Infrastructure-as-Code tools like Ansible. Therefore we should pick a use case like the one in https://github.com/jonashackt/molecule-ansible-docker-vagrant - which is "Installing Docker on an EC2 Ubuntu box".
 
@@ -248,7 +248,7 @@ Let's delete the initial stack and S3 bucket first. To destroy an existing stack
 pulumi destroy
 ```
 
-##### Build a common ground: Create an EC2 instance with SSH access
+#### Build a common ground: Create an EC2 instance with SSH access
 
 Let's have a look into the tutorials: https://www.pulumi.com/docs/tutorials/aws/ec2-webserver/
 
@@ -368,14 +368,14 @@ $ pulumi stack output publicIp
 ```
 
 
-### Run Pulumi with Travis
+## Run Pulumi with Travis
 
 Now that we're able to run our Pulumi code against AWS, we should also configure Travis to do the job for us every time we push our code.
 
 Most of the needed parts on how to execute a Python library on Travis to connect to AWS has been already described here: https://github.com/jonashackt/molecule-ansible-docker-vagrant#use-travisci-to-execute-molecule-with-ec2-infrastructure
 
 
-##### Configure TravisCI to connect to AWS & app.pulumi.com
+#### Configure TravisCI to connect to AWS & app.pulumi.com
 
 So let's create a [.travis.yml](.travis.yml), that doesn't contain so much in the first place:
 
@@ -416,7 +416,7 @@ install:
 To avoid [the knows problems with boto (the AWS python client) on Travis](aus dem Weg gehen), we already defined `sudo: false` and configured the `BOTO_CONFIG="/dev/null"` environment variable directly inside our [.travis.yml](.travis.yml). With that our AWS communication should work like a charm.
 
 
-##### Install & configure Pulumi on TravisCI
+#### Install & configure Pulumi on TravisCI
 
 Now we should also install the Pulumi SDK - as we already did locally. This time, we use Python's pip to do that for us: 
 
@@ -434,7 +434,7 @@ script:
 As you see, we add the Pulumi executable to the Travis build environments' PATH, otherwise we run into `pulumi: command not found` errors. We also log in to app.pulumi.com.
 
 
-##### Fire up Pulumi on TravisCI
+#### Fire up Pulumi on TravisCI
 
 Now we're nearly there! But as we're running on TravisCI, we should skip the virtualenv usage - since TravisCI's Python environment is already based on a virtualenv configuration (see https://docs.travis-ci.com/user/languages/python/#travis-ci-uses-isolated-virtualenvs).
 Therefore we only need to install the libraries needed via `pip install -r requirements.txt`:
@@ -597,7 +597,7 @@ You can also have a look into the AWS management console to see the EC2 instance
 
 
 
-### Install Docker on EC2 instance
+## Install Docker on EC2 instance
 
 So EC2's running, now we want to install Docker on it. But is there a way on how to issue shell commands and the like with Pulumi?
 
@@ -612,7 +612,7 @@ At the end, [Pulumi website tells us](https://www.pulumi.com/docs/intro/vs/chef_
 Ok, since Ansible leads the pack, we'll use that right away!
 
 
-##### Install Ansible & create a role to install Docker
+#### Install Ansible & create a role to install Docker
 
 First we should have Ansible installed on our system:
 
@@ -647,7 +647,7 @@ Now the Ansible role should reside at [roles/docker/tasks/main.yml](roles/docker
 There are two things left for a working Ansible setup: An inventory containing the hostname of our Pulumi-created EC2 instance and a working SSH connection - [therefore a AWS keypair has to be present](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html#how-to-generate-your-own-key-and-import-it-to-aws).
 
 
-##### SSH connection to the Pulumi created EC2 instance
+#### SSH connection to the Pulumi created EC2 instance
 
 So let's use the Pulumi AWS documentation (sorry, we need to use the JavaScript docs here, since the Python docs aren't quite good right now): https://www.pulumi.com/docs/reference/pkg/nodejs/pulumi/aws/
 
@@ -659,7 +659,7 @@ So it seems that we have to provide our own keypair to use this module :(
 
 Compared to the Ansible [ec2_key module](https://docs.ansible.com/ansible/latest/modules/ec2_key_module.html), __this is rather astonishing__. So we could only use the Pulumi [aws.ec2.KeyPair module](https://www.pulumi.com/docs/reference/pkg/nodejs/pulumi/aws/ec2/#KeyPair) as a wrapper around an EC2 keypair, that has to be generated elsewhere.
 
-So let's do that also with Ansible. We simply create a [prepare.yml](prepare.yml), that creates a new EC2 keypair, if there's no local private key already. The generated private key is then saved to `.ec2ssh/pulumi_key` inside the projects directory:
+So let's do that also with Ansible. We simply create a [keypair.yml](keypair.yml), that creates a new EC2 keypair, if there's no local private key already. The generated private key is then saved to `.ec2ssh/pulumi_key` inside the projects directory:
 
 ```yaml
 - name: Create EC2 Keypair
@@ -702,7 +702,7 @@ So let's do that also with Ansible. We simply create a [prepare.yml](prepare.yml
 Run the Ansible playbook now to generate the EC2 keypair:
 
 ```
-ansible-playbook prepare.yml
+ansible-playbook keypair.yml
 ```
 
 Now a file called `pulumi_key` should be generated. This is the private key of our new EC2 key pair. You can find the key pair also in the AWS EC2 management console:
@@ -736,32 +736,32 @@ $ pulumi up --yes
 With that [the key pair's public key is configured inside our new EC2 instance](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html) and is ready to be used. Ansible should now be able to connect to that machine via SSH, so we need a playbook to read the `public IP` from the Pulumi stack and connect to the EC2 instance. Let's open our [playbook.yml](playbook.yml):
 
 ```yaml
-- name: Create EC2 Keypair
+- name: Connect to Pulumi created EC2 instance and install Docker
   hosts: localhost
   connection: local
-  gather_facts: false
   vars:
     keypair_name: pulumi_key
     keypair_path: ".ec2ssh//{{ keypair_name }}"
     # this is really important to configure, since Ansible will use this user for SSH connection
     ssh_user: ubuntu
   tasks:
-    - name: Gather Pulumi created EC2 instance publicIP
+    - name: Gather Pulumi created EC2 instance public IP
       shell: pulumi stack output publicIp
       register: pulumi_stack_output
 
-    - name: Show public IP
-      debug:
-        msg: "The public IP of the Pulumi created EC2 instance is: {{ pulumi_stack_output.stdout }}"
+    - set_fact:
+        ec2_public_ip: "{{ pulumi_stack_output.stdout }}"
+
+    - debug:
+        msg: "The public IP of the Pulumi created EC2 instance is: {{ ec2_public_ip }}"
 
     - name: Wait 300 seconds for port 22 to become open and contain "SSH" - then the SSH connection should work afterwards
       wait_for:
         port: 22
-        host: "{{ pulumi_stack_output.stdout }}"
+        host: "{{ ec2_public_ip }}"
         search_regex: SSH
         delay: 10
         timeout: 320
-
 ```
 
 To prevent waiting command prompts like this:
@@ -786,6 +786,75 @@ If that doesn't work, you can debug the SSH connection with direct usage of Ansi
 ansible -i 3.120.32.99, -m ping all --user=ubuntu --private-key=.ec2ssh/pulumi_key -vvv
 ```
 
+#### Configure outgoing traffic for apt with a second Security group rule ("egress")
+
+Now we finally want to use the ansible-galaxy provided Ansible role 'docker' to install Docker on our Pulumic created EC2 instance!
+
+First thing: we should prevent outgoing connection errors like this:
+
+```bash
+        "0% [Connecting to eu-central-1.ec2.archive.ubuntu.com (52.59.228.109)] [Connect\u001b[0m",
+        "                                                                               ",
+        "Err:2 http://eu-central-1.ec2.archive.ubuntu.com/ubuntu bionic InRelease",
+        "  Could not connect to eu-central-1.ec2.archive.ubuntu.com:80 (52.59.244.233)
+```
+
+Therefore we need to create an EC2 __egress__ Security role also inside our Pulumi program [__main__.py](__main__.py) (have a look into the Pulumi [ec2.Security resource docs](https://www.pulumi.com/docs/reference/pkg/nodejs/pulumi/aws/ec2/#SecurityGroup)))
+
+```python
+# Create a EC2 security group
+pulumi_security_group = ec2.SecurityGroup(
+                            'pulumi-secgrp',
+                            description = 'Enable HTTP access',
+                            ingress = [
+                                { 'protocol': 'tcp', 'from_port': ec2_ssh_port, 'to_port': ec2_ssh_port, 'cidr_blocks': ['0.0.0.0/0'] }
+                            ],
+                            egress = [
+                                { 'protocol': '-1', 'from_port': 0, 'to_port': 0, 'cidr_blocks': ['0.0.0.0/0'] }
+                            ]
+)
+```
+
+A crucial point here is to set the __egress__ `protocol` to `-1`, since this is semantically equivalent to `"all"`, which is needed for successful outgoing communication of the package manager `apt-get` we need to use for the Docker installation. Inside the AWS EC2 management console, the `Outbound` configuration has to look like this:
+
+![aws-security-group-egress-outgoing-all-traffic](screenshots/aws-security-group-egress-outgoing-all-traffic.png)
+ 
+__Don't try to look that up inside the Pulumi docs, it's not there!__ But follow the link to [the Terraform docs, there you'll find this specific parameter configuration](https://github.com/terraform-providers/terraform-provider-aws/blob/master/website/docs/r/security_group.html.markdown#argument-reference).
+
+Now apt should be able to talk to the outside world finally.
+
+
+##### Use our role to install Docker on Ubuntu
+
+Now we finally want to use the ansible-galaxy provided Ansible role 'docker' to install Docker on our Pulumic created EC2 instance!
+
+Let's open our [playbook.yml](playbook.yml) again:
+
+```yaml
+    # Since the docker role needs facts like ansible_distribution & ansible_lsb.codename, we need to gather those facts beforehand
+    # from our delegate_to host (EC2 instance)
+    - name: Gather facts of Pulumi created EC2 instance for later role execution
+      setup:
+      delegate_to: "{{ ec2_public_ip }}"
+      vars:
+        ansible_ssh_private_key_file: "{{ keypair_path }}"
+        ansible_user: ubuntu
+
+    - name: Now use the ansible-galaxy prepared docker role to install Docker on our EC2 instance
+      import_role:
+        name: docker
+      delegate_to: "{{ ec2_public_ip }}"
+      become: true
+      vars:
+        ansible_ssh_private_key_file: "{{ keypair_path }}"
+        ansible_user: ubuntu
+```
+
+With the first usage of Ansible's [setup module](https://docs.ansible.com/ansible/latest/modules/setup_module.html) we're able to gather facts based dynamically on our Pulumi created host. In order to use this dynamic host, we use Ansible's [Delegation feature](https://docs.ansible.com/ansible/latest/user_guide/playbooks_delegation.html#delegation) with the keyword `delegate_to`.
+
+We also need to set the `ansible_ssh_private_key_file` and `ansible_user` SSH connection properties correctly to the keypair we used to create our EC2 instance using Pulumi.
+
+In the last step we finally use our role `docker` to install Docker on our Pulumi created EC2 instance.
 
 
 ### Test-driven Development with Pulumi
