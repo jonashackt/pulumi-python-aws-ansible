@@ -612,42 +612,7 @@ At the end, [Pulumi website tells us](https://www.pulumi.com/docs/intro/vs/chef_
 Ok, since Ansible leads the pack, we'll use that right away!
 
 
-#### Install Ansible & create a role to install Docker
-
-First we should have Ansible installed on our system:
-
-> Please don´t install Ansible and Molecule with homebrew on Mac, but always with pip3 since you only get old versions and need to manually install testinfra, ansible, flake8 and other packages
-
-`pip install ansible`
-
-Second we need a Ansible role that installs Docker on Ubuntu for us. That problem is already solved again in https://github.com/jonashackt/molecule-ansible-docker-vagrant 
-But since we don't want to copy the role, we use Ansible-Galaxy CLI to do that for us. [There's a nice not so much advertised feature](https://docs.ansible.com/ansible/latest/reference_appendices/galaxy.html#installing-multiple-roles-from-a-file) of `ansible-galaxy`, where you only have to provide a `requirements.yml` with the needed role with their git urls. So let's create our own [requirements.yml](requirements.yml):
-
-```yaml
-# dependency to docker role
-- src: https://github.com/jonashackt/molecule-ansible-docker-vagrant
-  name: docker
-```
-
-Now use `ansible-galaxy` CLI to download the role into the standard `/roles` directory, where your play/role could use it:
-
-```
-ansible-galaxy install -r requirements.yml -p roles/
-```
-
-Now the Ansible role should reside at [roles/docker/tasks/main.yml](roles/docker/tasks/main.yml) and could be used within a simple [playbook.yml](playbook.yml):
-
-```
-- hosts: all
-  become: true
-  roles:
-    - role: docker
-```
-
-There are two things left for a working Ansible setup: An inventory containing the hostname of our Pulumi-created EC2 instance and a working SSH connection - [therefore a AWS keypair has to be present](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html#how-to-generate-your-own-key-and-import-it-to-aws).
-
-
-#### SSH connection to the Pulumi created EC2 instance
+#### Creating an EC2 keypair with Ansible & firing up an EC2 instance with Pulumi
 
 So let's use the Pulumi AWS documentation (sorry, we need to use the JavaScript docs here, since the Python docs aren't quite good right now): https://www.pulumi.com/docs/reference/pkg/nodejs/pulumi/aws/
 
@@ -699,6 +664,10 @@ So let's do that also with Ansible. We simply create a [keypair.yml](keypair.yml
       when: keypair.changed
 ```
 
+To run the playbook you should have Ansible installed on our system:
+
+`pip install ansible`
+
 Run the Ansible playbook now to generate the EC2 keypair:
 
 ```
@@ -732,6 +701,9 @@ Now we should create a new Pulumi stack (and therefore destroy the old one first
 $ pulumi destroy --yes
 $ pulumi up --yes
 ```
+
+
+#### SSH connection to the Pulumi created EC2 instance
 
 With that [the key pair's public key is configured inside our new EC2 instance](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html) and is ready to be used. Ansible should now be able to connect to that machine via SSH, so we need a playbook to read the `public IP` from the Pulumi stack and connect to the EC2 instance. Let's open our [playbook.yml](playbook.yml):
 
@@ -774,13 +746,7 @@ Are you sure you want to continue connecting (yes/no)
 
 We should also create a proper [ansible.cfg](ansible.cfg) containing `ssh_args = -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no`.
 
-Then we can run the playbook with: 
-
-```
-ansible-playbook playbook.yml
-```
-
-If that doesn't work, you can debug the SSH connection with direct usage of Ansible ping module like this (insert the public IP retrieved by `pulumi stack output publicIp` and append a `,`):
+If nothing seems to work, you can debug the SSH connection with direct usage of Ansible ping module like this (insert the public IP retrieved by `pulumi stack output publicIp` and append a `,`):
 
 ```
 ansible -i 3.120.32.99, -m ping all --user=ubuntu --private-key=.ec2ssh/pulumi_key -vvv
@@ -824,6 +790,26 @@ __Don't try to look that up inside the Pulumi docs, it's not there!__ But follow
 Now apt should be able to talk to the outside world finally.
 
 
+#### Reuse Ansible role 'docker' with ansible-galaxy CLI & requirements.yml
+
+Now we need a Ansible role that installs Docker on Ubuntu for us. That problem is already solved for us (again) in https://github.com/jonashackt/molecule-ansible-docker-vagrant 
+But since we don't want to copy the role, we use Ansible-Galaxy CLI to do that for us. [There's a nice not so much advertised feature](https://docs.ansible.com/ansible/latest/reference_appendices/galaxy.html#installing-multiple-roles-from-a-file) of `ansible-galaxy`, where you only have to provide a `requirements.yml` with the needed role with their git urls. So let's create our own [requirements.yml](requirements.yml):
+
+```yaml
+# dependency to docker role
+- src: https://github.com/jonashackt/molecule-ansible-docker-vagrant
+  name: docker
+```
+
+Now use `ansible-galaxy` CLI to download the role into the standard `/roles` directory, where your play/role could use it:
+
+```
+ansible-galaxy install -r requirements.yml -p roles/
+```
+
+Now the Ansible role should reside at [roles/docker/tasks/main.yml](roles/docker/tasks/main.yml) and is ready to be used!
+
+
 ##### Use our role to install Docker on Ubuntu
 
 Now we finally want to use the ansible-galaxy provided Ansible role 'docker' to install Docker on our Pulumic created EC2 instance!
@@ -854,8 +840,39 @@ With the first usage of Ansible's [setup module](https://docs.ansible.com/ansibl
 
 We also need to set the `ansible_ssh_private_key_file` and `ansible_user` SSH connection properties correctly to the keypair we used to create our EC2 instance using Pulumi.
 
-In the last step we finally use our role `docker` to install Docker on our Pulumi created EC2 instance.
+In the last step we finally use our role `docker` to install Docker on our Pulumi created EC2 instance. Simply run our playbook with: 
 
+```
+ansible-playbook playbook.yml
+```
+
+I also created a shell script [create_all.sh](create_all.sh) that contains all neccessary steps in the right order:
+
+```shell script
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "destroy pre-created Pulumi instances"
+pulumi destroy --yes
+
+echo "generate EC2 keypair and save private key locally (since Pulumi isn't able to do that now)"
+ansible-playbook keypair.yml
+
+echo "execute Pulumi to create EC2 instances"
+pulumi up --yes
+
+echo "Downloading the Ansible role 'docker' with ansible-galaxy"
+ansible-galaxy install -r requirements.yml -p roles/
+
+echo "run Ansible role to install Docker on Ubuntu"
+ansible-playbook playbook.yml
+```
+
+Run it with `./create_all.sh`!
+
+And here's also a recording of the whole thing:
+
+[![asciicast](https://asciinema.org/a/273830.svg)](https://asciinema.org/a/273830)
 
 ### Test-driven Development with Pulumi
 
