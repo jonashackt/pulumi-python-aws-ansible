@@ -1,7 +1,8 @@
-# pulumi-example-aws-python
-[![Build Status](https://travis-ci.org/jonashackt/pulumi-example-aws-python.svg?branch=master)](https://travis-ci.org/jonashackt/pulumi-example-aws-python)
+# pulumi-python-aws-ansible
+[![Build Status](https://travis-ci.org/jonashackt/pulumi-python-aws-ansible.svg?branch=master)](https://travis-ci.org/jonashackt/pulumi-python-aws-ansible)
 [![versionansible](https://img.shields.io/badge/pulumi-1.3.0-brightgreen.svg)](https://docs.ansible.com/ansible/latest/index.html)
 [![versionawscli](https://img.shields.io/badge/awscli-1.16.255-brightgreen.svg)](https://aws.amazon.com/cli/)
+[![versionansible](https://img.shields.io/badge/ansible-2.8.5-brightgreen.svg)](https://docs.ansible.com/ansible/latest/index.html)
 
 Example project showing how to use Pulumi locally & with TravisCI to create Infrastructure on AWS 
 
