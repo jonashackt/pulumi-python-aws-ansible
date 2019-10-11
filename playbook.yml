@@ -1,0 +1,47 @@
+---
+- name: Connect to Pulumi created EC2 instance and install Docker
+  hosts: localhost
+  connection: local
+  vars:
+    keypair_name: pulumi_key
+    keypair_path: ".ec2ssh//{{ keypair_name }}"
+    # this is really important to configure, since Ansible will use this user for SSH connection
+    ssh_user: ubuntu
+  tasks:
+    - name: Gather Pulumi created EC2 instance public IP
+      shell: pulumi stack output publicIp
+      register: pulumi_stack_output
+
+    - set_fact:
+        ec2_public_ip: "{{ pulumi_stack_output.stdout }}"
+
+    - debug:
+        msg: "The public IP of the Pulumi created EC2 instance is: {{ ec2_public_ip }}"
+
+    - name: Wait 300 seconds for port 22 to become open and contain "SSH" - then the SSH connection should work afterwards
+      wait_for:
+        port: 22
+        host: "{{ ec2_public_ip }}"
+        search_regex: SSH
+        delay: 10
+        timeout: 320
+
+    # Since the docker role needs facts like ansible_distribution & ansible_lsb.codename, we need to gather those facts beforehand
+    # see https://github.com/ansible/ansible/issues/27875#issuecomment-321418470 on how to gather facts,
+    # when gather_facts is globally set to false
+    - name: Gather facts of Pulumi created EC2 instance for later role execution
+      setup:
+      delegate_to: "{{ ec2_public_ip }}"
+      delegate_facts: True
+      vars:
+        ansible_ssh_private_key_file: "{{ keypair_path }}"
+        ansible_user: ubuntu
+
+    - name: Now use the ansible-galaxy prepared docker role to install Docker on our EC2 instance
+      import_role:
+        name: docker
+      delegate_to: "{{ ec2_public_ip }}"
+      delegate_facts: True
+      vars:
+        ansible_ssh_private_key_file: "{{ keypair_path }}"
+        ansible_user: ubuntu

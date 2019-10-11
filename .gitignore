@@ -9,6 +9,9 @@ venv/
 # Ignore downloaded Ansible roles
 roles
 
+# Ignore EC2 private keys, they should be generated newly after a git clone
+.ec2ssh
+
 # Logs
 logs
 *.log

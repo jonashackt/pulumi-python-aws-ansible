@@ -635,10 +635,156 @@ Now use `ansible-galaxy` CLI to download the role into the standard `/roles` dir
 ansible-galaxy install -r requirements.yml -p roles/
 ```
 
-Now the Ansible role should reside at [roles/docker/tasks/main.yml](roles/docker/tasks/main.yml).
+Now the Ansible role should reside at [roles/docker/tasks/main.yml](roles/docker/tasks/main.yml) and could be used within a simple [playbook.yml](playbook.yml):
+
+```
+- hosts: all
+  become: true
+  roles:
+    - role: docker
+```
+
+There are two things left for a working Ansible setup: An inventory containing the hostname of our Pulumi-created EC2 instance and a working SSH connection - [therefore a AWS keypair has to be present](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html#how-to-generate-your-own-key-and-import-it-to-aws).
 
 
+##### SSH connection to the Pulumi created EC2 instance
 
+So let's use the Pulumi AWS documentation (sorry, we need to use the JavaScript docs here, since the Python docs aren't quite good right now): https://www.pulumi.com/docs/reference/pkg/nodejs/pulumi/aws/
+
+And inside the [aws.ec2.Instance](https://www.pulumi.com/docs/reference/pkg/nodejs/pulumi/aws/ec2/#Instance) there's a parameter [keyName](https://www.pulumi.com/docs/reference/pkg/nodejs/pulumi/aws/ec2/#Instance-keyName) which uses the type [aws.ec2.KeyPair](https://www.pulumi.com/docs/reference/pkg/nodejs/pulumi/aws/ec2/#KeyPair), which is sadly not linked in the docs - but you can find it looking into the ec2 docs again searching for `keypair`: https://www.pulumi.com/docs/reference/pkg/nodejs/pulumi/aws/ec2/. But the docs also state, that
+
+> Currently this resource requires an existing user-supplied key pair. This key pair’s public key will be registered with AWS to allow logging-in to EC2 instances.
+
+So it seems that we have to provide our own keypair to use this module :(
+
+Compared to the Ansible [ec2_key module](https://docs.ansible.com/ansible/latest/modules/ec2_key_module.html), __this is rather astonishing__. So we could only use the Pulumi [aws.ec2.KeyPair module](https://www.pulumi.com/docs/reference/pkg/nodejs/pulumi/aws/ec2/#KeyPair) as a wrapper around an EC2 keypair, that has to be generated elsewhere.
+
+So let's do that also with Ansible. We simply create a [prepare.yml](prepare.yml), that creates a new EC2 keypair, if there's no local private key already. The generated private key is then saved to `.ec2ssh/pulumi_key` inside the projects directory:
+
+```yaml
+- name: Create EC2 Keypair
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    keypair_name: pulumi_key
+    keypair_path: ".ec2ssh//{{ keypair_name }}"
+  tasks:
+    - name: Be sure to have .ec2ssh as local directory present
+      file:
+        path: ".ec2ssh"
+        state: directory
+
+    - name: Test for presence of local keypair
+      stat:
+        path: "{{ keypair_path }}"
+      register: keypair_local
+
+    - name: Delete remote keypair
+      ec2_key:
+        name: "{{ keypair_name }}"
+        state: absent
+      when: not keypair_local.stat.exists
+
+    - name: Create keypair
+      ec2_key:
+        name: "{{ keypair_name }}"
+      register: keypair
+
+    - name: Persist the keypair
+      copy:
+        dest: "{{ keypair_path }}"
+        content: "{{ keypair.key.private_key }}"
+        mode: 0600
+      when: keypair.changed
+```
+
+Run the Ansible playbook now to generate the EC2 keypair:
+
+```
+ansible-playbook prepare.yml
+```
+
+Now a file called `pulumi_key` should be generated. This is the private key of our new EC2 key pair. You can find the key pair also in the AWS EC2 management console:
+
+![aws-ec2-keypair](screenshots/aws-ec2-keypair.png)
+
+The last part is to tell Pulumi, that this new key pair should be used at the EC2 instance creation time. Therefore we change our Pulumi Python code in [__main__.py](__main__.py) and add the `key_name` parameter to the `ec2.Instance()` call:
+
+```python
+...
+ec2_keypair_name = 'pulumi_key'
+...
+# Create EC2 instance
+ec2_instance = ec2.Instance(
+                    ec2_instance_name,
+                    key_name = ec2_keypair_name,
+                    instance_type = ec2_instance_size,
+                    security_groups = [pulumi_security_group.name],
+                    ami = pulumi_ami.id
+)
+...
+```
+
+Now we should create a new Pulumi stack (and therefore destroy the old one first):
+
+```
+$ pulumi destroy --yes
+$ pulumi up --yes
+```
+
+With that [the key pair's public key is configured inside our new EC2 instance](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html) and is ready to be used. Ansible should now be able to connect to that machine via SSH, so we need a playbook to read the `public IP` from the Pulumi stack and connect to the EC2 instance. Let's open our [playbook.yml](playbook.yml):
+
+```yaml
+- name: Create EC2 Keypair
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    keypair_name: pulumi_key
+    keypair_path: ".ec2ssh//{{ keypair_name }}"
+    # this is really important to configure, since Ansible will use this user for SSH connection
+    ssh_user: ubuntu
+  tasks:
+    - name: Gather Pulumi created EC2 instance publicIP
+      shell: pulumi stack output publicIp
+      register: pulumi_stack_output
+
+    - name: Show public IP
+      debug:
+        msg: "The public IP of the Pulumi created EC2 instance is: {{ pulumi_stack_output.stdout }}"
+
+    - name: Wait 300 seconds for port 22 to become open and contain "SSH" - then the SSH connection should work afterwards
+      wait_for:
+        port: 22
+        host: "{{ pulumi_stack_output.stdout }}"
+        search_regex: SSH
+        delay: 10
+        timeout: 320
+
+```
+
+To prevent waiting command prompts like this:
+
+```
+The authenticity of host '3.120.32.99 (3.120.32.99)' can't be established.
+ECDSA key fingerprint is SHA256:+1Pb+VPlnUntX1E6bnegvpdU7qEPbxAsdXN6mFDgtZY.
+Are you sure you want to continue connecting (yes/no)
+```
+
+We should also create a proper [ansible.cfg](ansible.cfg) containing `ssh_args = -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no`.
+
+Then we can run the playbook with: 
+
+```
+ansible-playbook playbook.yml
+```
+
+If that doesn't work, you can debug the SSH connection with direct usage of Ansible ping module like this (insert the public IP retrieved by `pulumi stack output publicIp` and append a `,`):
+
+```
+ansible -i 3.120.32.99, -m ping all --user=ubuntu --private-key=.ec2ssh/pulumi_key -vvv
+```
 
 
 

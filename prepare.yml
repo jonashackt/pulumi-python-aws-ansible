@@ -1,0 +1,36 @@
+---
+- name: Create EC2 Keypair
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    keypair_name: pulumi_key
+    keypair_path: ".ec2ssh//{{ keypair_name }}"
+  tasks:
+    - name: Be sure to have .ec2ssh as local directory present
+      file:
+        path: ".ec2ssh"
+        state: directory
+
+    - name: Test for presence of local keypair
+      stat:
+        path: "{{ keypair_path }}"
+      register: keypair_local
+
+    - name: Delete remote keypair
+      ec2_key:
+        name: "{{ keypair_name }}"
+        state: absent
+      when: not keypair_local.stat.exists
+
+    - name: Create keypair
+      ec2_key:
+        name: "{{ keypair_name }}"
+      register: keypair
+
+    - name: Persist the keypair
+      copy:
+        dest: "{{ keypair_path }}"
+        content: "{{ keypair.key.private_key }}"
+        mode: 0600
+      when: keypair.changed
