@@ -155,7 +155,6 @@ The `-p python3` option tells virtualenv to use the Python interpreter with vers
 
 ```
 source venv/bin/activate
-# OR .venv/bin/activate
 ```
 
 `source` is just a synonym for `.`, which simply [executes something on a shell](https://superuser.com/a/46146/497608). To run a check, if you're using the isolated virtualenv's Python now, run a `pip3 -V`. It should contain the correct path to your project:
@@ -905,4 +904,5 @@ https://www.pulumi.com/docs/tutorials/aws/ec2-webserver/
 
 https://blog.scottlowe.org/2019/05/05/a-sandbox-for-learning-pulumi/
 
+Some also use Pulumi + Ansible already: https://blog.wallaroolabs.com/2018/10/spinning-up-a-wallaroo-cluster-is-easy/
 
