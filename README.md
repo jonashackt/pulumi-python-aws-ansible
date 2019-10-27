@@ -940,6 +940,36 @@ There was a recent update to the dynamic shields.io endpoint (have a look into h
 Now every badge stays up-to-date with every renovate update - like this one here: [![versionpulumi](https://img.shields.io/github/pipenv/locked/dependency-version/jonashackt/pulumi-python-aws-ansible/pulumi?color=brightgreen)](https://www.pulumi.com/)
 
 
+##### Using pipenv on TravisCI
+
+As we're now using `pipenv` for dependecy management, we could also rework our TravisCI configuration. [As this post states](https://medium.com/@dirk.avery/quirks-of-pipenv-on-travis-ci-and-appveyor-10d6adb6c55b) and we already learned, TravisCI uses `virtualenv` environment per default. Now `pipenv` is luckily smart enough to detect that, so all we have to do is the following inside our [.travis.yml](.travis.yml):
+
+```yaml
+sudo: false
+language: python
+
+env:
+  - BOTO_CONFIG="/dev/null"
+
+install:
+  # Install pipenv dependency manager
+  - pip install pipenv
+  # Fire up pipenv shell
+  - pipenv shell
+  # Install required (and locked) dependecies from Pipfile.lock
+  # skip virtualenv in virtualenv Travis inception (see https://docs.travis-ci.com/user/languages/python/#travis-ci-uses-isolated-virtualenvs)
+  # and simply install pip libraries directly (otherwise pulumi: command not found error will come after us again)
+  # pipenv is smart enough to recognise the existing virtualenv without a prior pipenv shell command (see https://medium.com/@dirk.avery/quirks-of-pipenv-on-travis-ci-and-appveyor-10d6adb6c55b)
+  - pipenv install
+
+  # configure AWS CLI
+  - aws configure set aws_access_key_id $AWS_ACCESS_KEY
+  - aws configure set aws_secret_access_key $AWS_SECRET_KEY
+  - aws configure set default.region eu-central-1
+  # show AWS CLI config
+  - aws configure list
+``` 
+
 
 
 ### Test-driven Development with Pulumi
