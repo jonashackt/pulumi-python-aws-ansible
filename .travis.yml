@@ -30,7 +30,7 @@ script:
   # and simply install pip libraries directly (otherwise pulumi: command not found error will come after us again)
   - pip install -r requirements.txt
 
-  - # Select your Pulumi projects' stack
+  # Select your Pulumi projects' stack
   - pulumi stack select dev
 
   # Run Pulumi unattended
