@@ -6,19 +6,15 @@ env:
   - BOTO_CONFIG="/dev/null"
 
 install:
-  # First: install Pulumi
-  # Install Pulumi SDK with the installation script from https://www.pulumi.com/docs/get-started/install/#installation-script
+  # First: install Pulumi SDK with the installation script from https://www.pulumi.com/docs/get-started/install/#installation-script
   - curl -fsSL https://get.pulumi.com | sh
   # Add Pulumi to Travis' PATH so the executable could be found
   - export PATH=$PATH:/home/travis/.pulumi/bin
   - pulumi version
 
-  # Second: Install pulumi-aws dependency
-  # Install pipenv dependency manager
+  # Second: Install pulumi-aws dependency (among others like awscli & Ansible) via pipenv dependency manager
   - pip install pipenv
-  # Install required (and locked) dependecies from Pipfile.lock
-  # skip virtualenv in virtualenv Travis inception (see https://docs.travis-ci.com/user/languages/python/#travis-ci-uses-isolated-virtualenvs)
-  # and simply install pip libraries directly (otherwise pulumi: command not found error will come after us again)
+  # Install required (and locked) dependecies from Pipfile.lock (especially pulumi-aws, otherwise we run into "error: no resource plugin 'aws' found in the workspace or on your $PATH"
   # pipenv is smart enough to recognise the existing virtualenv without a prior pipenv shell command (see https://medium.com/@dirk.avery/quirks-of-pipenv-on-travis-ci-and-appveyor-10d6adb6c55b)
   - pipenv install
 

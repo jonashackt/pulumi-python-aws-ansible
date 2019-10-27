@@ -952,24 +952,57 @@ env:
   - BOTO_CONFIG="/dev/null"
 
 install:
-  # Install pipenv dependency manager
+  # First: install Pulumi SDK with the installation script from https://www.pulumi.com/docs/get-started/install/#installation-script
+  - curl -fsSL https://get.pulumi.com | sh
+  # Add Pulumi to Travis' PATH so the executable could be found
+  - export PATH=$PATH:/home/travis/.pulumi/bin
+  - pulumi version
+
+  # Second: Install pulumi-aws dependency (among others like awscli & Ansible) via pipenv dependency manager
   - pip install pipenv
-  # Install required (and locked) dependecies from Pipfile.lock
-  # skip virtualenv in virtualenv Travis inception (see https://docs.travis-ci.com/user/languages/python/#travis-ci-uses-isolated-virtualenvs)
-  # and simply install pip libraries directly (otherwise pulumi: command not found error will come after us again)
+  # Install required (and locked) dependecies from Pipfile.lock (especially pulumi-aws, otherwise we run into "error: no resource plugin 'aws' found in the workspace or on your $PATH"
   # pipenv is smart enough to recognise the existing virtualenv without a prior pipenv shell command (see https://medium.com/@dirk.avery/quirks-of-pipenv-on-travis-ci-and-appveyor-10d6adb6c55b)
   - pipenv install
-  # install AWS related packages
-  - pipenv install boto boto3
 
-  # configure AWS CLI
+  # Third: Check, if Pulumi aws plugin was installed correctly
+  - pulumi plugin ls
+
+  # Forth: Configure AWS CLI
   - aws configure set aws_access_key_id $AWS_ACCESS_KEY
   - aws configure set aws_secret_access_key $AWS_SECRET_KEY
   - aws configure set default.region eu-central-1
   # show AWS CLI config
   - aws configure list
+
+
+script:
+  # login to app.pulumi.com with the predefined PULUMI_ACCESS_TOKEN
+  - pulumi login
+
+  # Select your Pulumi projects' stack
+  - pulumi stack select dev
+
+  # Run Pulumi unattended
+  - pulumi up --yes
+  # After everything has been created, we should also destroy the infrastructure again
+  - pulumi destroy --yes
 ``` 
 
+__There's one big thing to take care of:__ Pulumi needs to be installed first like it is described on the official docs: https://www.pulumi.com/docs/get-started/install/#installation-script
+
+And __then__ install the dependencies containing `pulumi-aws` __afterwards__. Otherwise, you'll run into the error `error: no resource plugin 'aws' found in the workspace or on your $PATH` (see https://github.com/pulumi/pulumi/issues/2097 and [this build log](https://travis-ci.org/jonashackt/pulumi-python-aws-ansible/builds/603558895?utm_medium=notification&utm_source=github_status)).
+
+You can double check if your Pulumi AWS installation is correct with `pulumi plugin ls` - this has to contain the Pulumi aws resource plugin like that:
+
+```
+$ pulumi plugin ls
+NAME  KIND      VERSION  SIZE    INSTALLED    LAST USED
+aws   resource  1.7.0    220 MB  2 hours ago  2 hours ago
+```
+
+If this is empty, AWS connectivity won't work!
+
+After that's safe, the `aws CLI` has to be configured as usual. Now the TravisCI build is ready for it's script phase! After a `pulumi login` based on the correctly set `PULUMI_ACCESS_TOKEN` and the selection of the wanted Pulumi stack via `pulumi stack select dev`, you can start using Pulumi!
 
 
 ### Test-driven Development with Pulumi
