@@ -30,6 +30,8 @@ script:
   # Add Pulumi to Travis' PATH so the executable could be found
   - export PATH=$PATH:/home/travis/.pulumi/bin
   - pulumi version
+  # Let's have a look, if Pulumi aws plugin was installed correctly
+  - pulumi plugin ls
   # login to app.pulumi.com with the predefined PULUMI_ACCESS_TOKEN
   - pulumi login
 
