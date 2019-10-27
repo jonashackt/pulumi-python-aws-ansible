@@ -13,6 +13,8 @@ install:
   # and simply install pip libraries directly (otherwise pulumi: command not found error will come after us again)
   # pipenv is smart enough to recognise the existing virtualenv without a prior pipenv shell command (see https://medium.com/@dirk.avery/quirks-of-pipenv-on-travis-ci-and-appveyor-10d6adb6c55b)
   - pipenv install
+  # install AWS related packages
+  - pipenv install boto boto3
 
   # configure AWS CLI
   - aws configure set aws_access_key_id $AWS_ACCESS_KEY
