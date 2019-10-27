@@ -6,6 +6,14 @@ env:
   - BOTO_CONFIG="/dev/null"
 
 install:
+  # First: install Pulumi
+  # Install Pulumi SDK with the installation script from https://www.pulumi.com/docs/get-started/install/#installation-script
+  - curl -fsSL https://get.pulumi.com | sh
+  # Add Pulumi to Travis' PATH so the executable could be found
+  - export PATH=$PATH:/home/travis/.pulumi/bin
+  - pulumi version
+
+  # Second: Install pulumi-aws dependency
   # Install pipenv dependency manager
   - pip install pipenv
   # Install required (and locked) dependecies from Pipfile.lock
@@ -13,10 +21,11 @@ install:
   # and simply install pip libraries directly (otherwise pulumi: command not found error will come after us again)
   # pipenv is smart enough to recognise the existing virtualenv without a prior pipenv shell command (see https://medium.com/@dirk.avery/quirks-of-pipenv-on-travis-ci-and-appveyor-10d6adb6c55b)
   - pipenv install
-  # install AWS related packages
-  - pipenv install boto boto3
 
-  # configure AWS CLI
+  # Third: Check, if Pulumi aws plugin was installed correctly
+  - pulumi plugin ls
+
+  # Forth: Configure AWS CLI
   - aws configure set aws_access_key_id $AWS_ACCESS_KEY
   - aws configure set aws_secret_access_key $AWS_SECRET_KEY
   - aws configure set default.region eu-central-1
@@ -25,13 +34,6 @@ install:
 
 
 script:
-  # Install Pulumi SDK with the installation script from https://www.pulumi.com/docs/get-started/install/#installation-script
-  - curl -fsSL https://get.pulumi.com | sh
-  # Add Pulumi to Travis' PATH so the executable could be found
-  - export PATH=$PATH:/home/travis/.pulumi/bin
-  - pulumi version
-  # Let's have a look, if Pulumi aws plugin was installed correctly
-  - pulumi plugin ls
   # login to app.pulumi.com with the predefined PULUMI_ACCESS_TOKEN
   - pulumi login
 
