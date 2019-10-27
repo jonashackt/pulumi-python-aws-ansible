@@ -3,7 +3,7 @@
 [![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/jonashackt/spring-boot-vuejs/blob/master/LICENSE)
 [![renovateenabled](https://img.shields.io/badge/renovate-enabled-yellow)](https://renovatebot.com)
 [![versionpulumi](https://img.shields.io/github/pipenv/locked/dependency-version/jonashackt/pulumi-python-aws-ansible/pulumi?color=brightgreen)](https://www.pulumi.com/)
-[![versionawscli](https://img.shields.io/github/pipenv/locked/dependency-version/jonashackt/pulumi-python-aws-ansible/aws-cli?color=brightgreen)](https://aws.amazon.com/cli/)
+[![versionawscli](https://img.shields.io/github/pipenv/locked/dependency-version/jonashackt/pulumi-python-aws-ansible/awscli?color=brightgreen)](https://aws.amazon.com/cli/)
 [![versionansible](https://img.shields.io/github/pipenv/locked/dependency-version/jonashackt/pulumi-python-aws-ansible/ansible?color=brightgreen)](https://docs.ansible.com/ansible/latest/index.html)
 
 Example project showing how to use Pulumi locally & with TravisCI to create Infrastructure on AWS 
