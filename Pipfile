@@ -1,0 +1,14 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+pulumi = "==1.4.0"
+pulumi-aws = "==1.7.0"
+ansible = "*"
+
+[requires]
+python_version = "3.7"

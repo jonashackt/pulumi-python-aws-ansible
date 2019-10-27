@@ -876,6 +876,72 @@ And here's also a recording of the whole thing:
 
 [![asciicast](https://asciinema.org/a/273830.svg)](https://asciinema.org/a/273830)
 
+
+##### Replace direct usage of virtualenv and pip with pipenv
+
+While `virtualenv` does a great job to seperate Python build dependencies from different projects (and your system's pip packages), the `requirements.txt` doesn't lead to fully deterministic builds, because it doesn't manage transient dependencies - and Python packages tend to use unpinned dependencies -> so different environments could lead to different build outputs (see this article for more details: https://realpython.com/pipenv-guide/).
+
+The solution for this is the use of [pipenv](https://github.com/pypa/pipenv), which effectively replaces the usage of pip and virtualenv and manages both for you. It also introduces two new files, which replace the requirements.txt: [Pipfile](https://github.com/pypa/pipfile) and `Pipfile.lock` to ensure deterministic builds.
+
+To install `pipenv`, simply run
+
+```
+pip3 install pipenv
+```
+
+Now create a new virtual environment with
+
+```
+pipenv shell --python 3.7
+```
+
+Here, `--python 3.7` ensures a current Python 3 installation. 
+
+Now we can use `pipenv` to install all required dependencies with 
+
+```
+pipenv install
+```
+
+We can now also add Ansible as a requirement, since our project depends on it (remember, we don't use `pip` command any more, only `pipenv` to install packages):
+
+```
+pipenv install ansible
+```
+
+##### Configure renovate and shields.io badges to use our pipenv managed versions
+
+As this project is kept up-to-date by [renovate](https://github.com/renovatebot/renovate), we should configure the [renovate.json](renovate.json) configuration file to tell renovate about pipenv ([which is currently a beta feature](https://docs.renovatebot.com/configuration-options/#pipenv)):
+
+```json
+{
+  "extends": [
+    "config:base"
+  ],
+  "groupName": "all",
+  "pipenv": {
+    "enabled": true
+  }
+}
+```
+
+And as our project uses [shields.io badges](https://shields.io/category/platform-support) to show used dependency versions at the top of the [README.md](README.md), we should also configure them to be dynamically read from the [Pipfile](Pipfile).
+
+There was a recent update to the dynamic shields.io endpoint (have a look into https://github.com/badges/shields/issues/2259#issuecomment-537699182 for more info), so we could upgrade our badges like that:
+
+```
+# old
+[![versionansible](https://img.shields.io/badge/pulumi-1.3.0-brightgreen.svg)](https://docs.ansible.com/ansible/latest/index.html)
+
+# new
+[![versionansible](https://img.shields.io/badge/pulumi-1.3.0-brightgreen.svg)](https://docs.ansible.com/ansible/latest/index.html)
+
+```
+
+
+
+
+
 ### Test-driven Development with Pulumi
 
 https://www.pulumi.com/blog/testing-your-infrastructure-as-code-with-pulumi/
