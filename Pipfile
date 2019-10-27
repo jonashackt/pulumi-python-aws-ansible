@@ -9,6 +9,7 @@ verify_ssl = true
 pulumi = "==1.4.0"
 pulumi-aws = "==1.7.0"
 ansible = "*"
+awscli = "*"
 
 [requires]
 python_version = "3.7"

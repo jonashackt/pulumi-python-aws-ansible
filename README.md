@@ -2,9 +2,9 @@
 [![Build Status](https://travis-ci.org/jonashackt/pulumi-python-aws-ansible.svg?branch=master)](https://travis-ci.org/jonashackt/pulumi-python-aws-ansible)
 [![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/jonashackt/spring-boot-vuejs/blob/master/LICENSE)
 [![renovateenabled](https://img.shields.io/badge/renovate-enabled-yellow)](https://renovatebot.com)
-[![versionansible](https://img.shields.io/badge/pulumi-1.3.0-brightgreen.svg)](https://docs.ansible.com/ansible/latest/index.html)
-[![versionawscli](https://img.shields.io/badge/awscli-1.16.255-brightgreen.svg)](https://aws.amazon.com/cli/)
-[![versionansible](https://img.shields.io/badge/ansible-2.8.5-brightgreen.svg)](https://docs.ansible.com/ansible/latest/index.html)
+[![versionpulumi](https://img.shields.io/github/pipenv/locked/dependency-version/jonashackt/pulumi-python-aws-ansible/pulumi?color=brightgreen)](https://www.pulumi.com/)
+[![versionawscli](https://img.shields.io/github/pipenv/locked/dependency-version/jonashackt/pulumi-python-aws-ansible/aws-cli?color=brightgreen)](https://aws.amazon.com/cli/)
+[![versionansible](https://img.shields.io/github/pipenv/locked/dependency-version/jonashackt/pulumi-python-aws-ansible/ansible?color=brightgreen)](https://docs.ansible.com/ansible/latest/index.html)
 
 Example project showing how to use Pulumi locally & with TravisCI to create Infrastructure on AWS 
 
@@ -931,13 +931,13 @@ There was a recent update to the dynamic shields.io endpoint (have a look into h
 
 ```
 # old
-[![versionansible](https://img.shields.io/badge/pulumi-1.3.0-brightgreen.svg)](https://docs.ansible.com/ansible/latest/index.html)
+[![versionansible](https://img.shields.io/badge/ansible-2.8.5-brightgreen.svg)](https://docs.ansible.com/ansible/latest/index.html)
 
 # new
-[![versionansible](https://img.shields.io/badge/pulumi-1.3.0-brightgreen.svg)](https://docs.ansible.com/ansible/latest/index.html)
-
+[![versionansible](https://img.shields.io/github/pipenv/locked/dependency-version/jonashackt/pulumi-python-aws-ansible/ansible?color=brightgreen)](https://docs.ansible.com/ansible/latest/index.html)
 ```
 
+Now every badge stays up-to-date with every renovate update - like this one here: [![versionpulumi](https://img.shields.io/github/pipenv/locked/dependency-version/jonashackt/pulumi-python-aws-ansible/pulumi?color=brightgreen)](https://www.pulumi.com/)
 
 
 
