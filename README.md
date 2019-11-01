@@ -903,10 +903,10 @@ Now we can use `pipenv` to install all required dependencies with
 pipenv install
 ```
 
-We can now also add Ansible as a requirement, since our project depends on it (remember, we don't use `pip` command any more, only `pipenv` to install packages):
+We can now also add Ansible as a requirement, since our project depends on it, incl. boto3, which Ansible needs to work with AWS correctly (remember, we don't use `pip` command any more, only `pipenv` to install packages):
 
 ```
-pipenv install ansible
+pipenv install ansible boto3
 ```
 
 ##### Configure renovate and shields.io badges to use our pipenv managed versions
