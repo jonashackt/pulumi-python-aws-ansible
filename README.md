@@ -1072,6 +1072,28 @@ We also need to dynamically use the Pulumi created EC2 instance' host IP. Rememb
  --hosts='ssh://'$(pulumi stack output publicIp)
 ```
 
+Additionally, we also need to prevent such ssh prompts for later usage inside our CI/CD pipelines:
+
+```
+tests/test_docker.py::test_is_docker_installed[ssh://18.194.233.114] The authenticity of host '18.194.233.114 (18.194.233.114)' can't be established.
+ECDSA key fingerprint is SHA256:gtQ84TwZZUqsgS/rJSn2rvNuqnzt9Xp1z0f9gFnfzOk.
+Are you sure you want to continue connecting (yes/no)? yes
+```
+
+Therefore, we need to configure `pytest` in a way it tell's the underlying ssh connection to use those ssh configuration args: `-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no`. As there's no way to do that with the help of the commandline, we need to use the `--ssh-config=tests/pytest_ssh_config` parameter and configure them with an ssh_config file called [tests/pytest_ssh_config](tests/pytest_ssh_config):
+
+```
+Host *
+   User ubuntu
+   StrictHostKeyChecking no
+   UserKnownHostsFile=/dev/null
+```
+
+Also we should configure the `ssh user` inside this file: `User ubuntu`, since otherwise the connection won't work (it would use root, but our EC2 keypair is configured for `ubuntu` user).
+
+
+Finally everything should be prepared so that we can execute pytest and Testinfra on our setup:
+
 ```
 py.test -v tests/test_docker.py --ssh-identity-file=.ec2ssh/pulumi_key --ssh-config=tests/pytest_ssh_config --hosts='ssh://'$(pulumi stack output publicIp)
 ```

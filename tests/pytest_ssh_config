@@ -1,3 +1,4 @@
 Host *
+   User ubuntu
    StrictHostKeyChecking no
    UserKnownHostsFile=/dev/null
