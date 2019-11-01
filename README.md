@@ -5,6 +5,8 @@
 [![versionpulumi](https://img.shields.io/github/pipenv/locked/dependency-version/jonashackt/pulumi-python-aws-ansible/pulumi?color=brightgreen)](https://www.pulumi.com/)
 [![versionawscli](https://img.shields.io/github/pipenv/locked/dependency-version/jonashackt/pulumi-python-aws-ansible/awscli?color=brightgreen)](https://aws.amazon.com/cli/)
 [![versionansible](https://img.shields.io/github/pipenv/locked/dependency-version/jonashackt/pulumi-python-aws-ansible/ansible?color=brightgreen)](https://docs.ansible.com/ansible/latest/index.html)
+[![versiontestinfra](https://img.shields.io/github/pipenv/locked/dependency-version/jonashackt/pulumi-python-aws-ansible/testinfra?color=brightgreen)](https://testinfra.readthedocs.io/en/latest/index.html)
+[![versionpytest](https://img.shields.io/github/pipenv/locked/dependency-version/jonashackt/pulumi-python-aws-ansible/pytest?color=brightgreen)](https://docs.pytest.org/en/latest/)
 
 Example project showing how to use Pulumi locally & with TravisCI to create Infrastructure on AWS 
 
@@ -666,9 +668,9 @@ So let's do that also with Ansible. We simply create a [keypair.yml](keypair.yml
       when: keypair.changed
 ```
 
-To run the playbook you should have Ansible installed on our system:
+To run the playbook you should have Ansible (and boto3 for AWS accessibility) installed on our system:
 
-`pip install ansible`
+`pip install ansible boto3`
 
 Run the Ansible playbook now to generate the EC2 keypair:
 
