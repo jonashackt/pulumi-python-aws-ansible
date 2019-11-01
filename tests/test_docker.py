@@ -1,6 +1,5 @@
 import os
-import pytest
-import testinfra
+
 
 def test_is_docker_installed(host):
     package_docker = host.package('docker-ce')
