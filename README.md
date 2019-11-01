@@ -1009,8 +1009,74 @@ After that's safe, the `aws CLI` has to be configured as usual. Now the TravisCI
 
 https://www.pulumi.com/blog/testing-your-infrastructure-as-code-with-pulumi/
 
+https://www.pulumi.com/blog/tag/testing/ --> 1 article! :(
 
-Testinfra??! Pytest
+https://www.pulumi.com/blog/unit-testing-infrastructure-in-nodejs-and-mocha/
+
+Discussion to test harnesses ended in this https://github.com/pulumi/pulumi/issues/1902
+
+There's a 1 star plugin for [Chef's TDD harness tool kitchenCI](https://kitchen.ci/): https://github.com/jacoblearned/kitchen-pulumi
+
+
+##### Using Testinfra for Testing Python based Pulumi code
+
+So there are currently no docs/articles available on how to test Python based Pulumi setups. But there are [great tools around for doing testing in the Python world](https://blog.codecentric.de/en/2018/12/test-driven-infrastructure-ansible-molecule/)) - like pytest and [Testinfra](https://testinfra.readthedocs.io/en/latest/). So why not use them?!
+
+Therefore let's install Testinfra with pipenv:
+
+```
+pipenv install testinfra
+```
+
+Now we need some test code. Since we're re-using the use case of installing Docker on an AWS EC2 instance from this project https://github.com/jonashackt/molecule-ansible-docker-vagrant, we could also use the existing test code from the [test_docker.py](https://github.com/jonashackt/molecule-ansible-docker-vagrant/blob/master/docker/molecule/tests/test_docker.py) file:
+
+```
+import os
+
+import testinfra.utils.ansible_runner
+
+testinfra_hosts = testinfra.utils.ansible_runner.AnsibleRunner(
+    os.environ['MOLECULE_INVENTORY_FILE']).get_hosts('all')
+
+
+def test_is_docker_installed(host):
+    package_docker = host.package('docker-ce')
+
+    assert package_docker.is_installed
+
+
+def test_vagrant_user_is_part_of_group_docker(host):
+    user_vagrant = host.user('vagrant')
+
+    assert 'docker' in user_vagrant.groups
+
+
+def test_run_hello_world_container_successfully(host):
+    hello_world_ran = host.run("sudo docker run hello-world")
+
+    assert 'Hello from Docker!' in hello_world_ran.stdout
+```
+
+All we have to change here, is the way how Testinfra gets to know about the Pulumi created EC2 instances, since we don't have a Molecule inventory file here anymore. So let's delete the parts containing `import testinfra.utils.ansible_runner` and `MOLECULE_INVENTORY_FILE` and try to somehow configure the Testinfra hosts in another way.
+
+
+##### Configure the Pulumi created EC2 instance in Testinfra/pytest
+
+We should now be able to finally run our Testinfra test code with pytest?! Well, we need to tweak the standard `py.test -v tests/test_docker.py` command a bit before!
+
+First, we should use the [pytest ssh backend](https://testinfra.readthedocs.io/en/latest/backends.html#ssh) to connect to our EC2 instance. Why? Because we need to be able to configure our Ansible generated EC2 keypair for the connection and the ssh backend has a nice `--ssh-identity-file=/path/to/key` configuration option.
+
+We also need to dynamically use the Pulumi created EC2 instance' host IP. Remember the `pulumi stack output publicIp` already used inside our Ansible playbook to gather the IP address? So let's [use this inline](https://stackoverflow.com/a/8663623/4964553) inside our pytest command with the help of the `$()` nesting feature of our console together with the `--hosts='ssh://server'` notation (otherwise, pytest tries to use paramiko connection backend):
+
+```
+ --hosts='ssh://'$(pulumi stack output publicIp)
+```
+
+```
+py.test -v tests/test_docker.py --ssh-identity-file=.ec2ssh/pulumi_key --ssh-config=tests/pytest_ssh_config --hosts='ssh://'$(pulumi stack output publicIp)
+```
+
+
 
 
 ### Run a Dockerized application on AWS with Pulumi

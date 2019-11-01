@@ -15,3 +15,6 @@ ansible-galaxy install -r requirements.yml -p roles/
 
 echo "run Ansible role to install Docker on Ubuntu"
 ansible-playbook playbook.yml
+
+echo "use Testinfra with Pytest to execute our tests"
+py.test -v tests/test_docker.py --ssh-identity-file=.ec2ssh/pulumi_key --ssh-config=tests/pytest_ssh_config --hosts='ssh://'$(pulumi stack output publicIp)
