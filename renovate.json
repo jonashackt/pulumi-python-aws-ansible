@@ -2,7 +2,11 @@
   "extends": [
     "config:base"
   ],
-  "groupName": "all",
+  "automerge": true,
+  "automergeType": "branch",
+  "major": {
+    "automerge": false
+  },
   "pipenv": {
     "enabled": true
   }
