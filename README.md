@@ -1033,11 +1033,6 @@ Now we need some test code. Since we're re-using the use case of installing Dock
 ```
 import os
 
-import testinfra.utils.ansible_runner
-
-testinfra_hosts = testinfra.utils.ansible_runner.AnsibleRunner(
-    os.environ['MOLECULE_INVENTORY_FILE']).get_hosts('all')
-
 
 def test_is_docker_installed(host):
     package_docker = host.package('docker-ce')
@@ -1097,6 +1092,50 @@ Finally everything should be prepared so that we can execute pytest and Testinfr
 ```
 py.test -v tests/test_docker.py --ssh-identity-file=.ec2ssh/pulumi_key --ssh-config=tests/pytest_ssh_config --hosts='ssh://'$(pulumi stack output publicIp)
 ```
+
+If everything went well, the output should look somehow like this:
+
+![pytest-testinfra-successful-passed](screenshots/pytest-testinfra-successful-passed.png)
+
+
+##### Continuous Cloud infrastructure with Pulumi, Ansible & Testinfra on TravisCI
+
+Now we should have everything prepared to let this setup run not only once - but continuously! Quoting [this blog post](https://blog.codecentric.de/en/2018/12/continuous-infrastructure-ansible-molecule-travisci/):
+
+> The benefits of Test-driven development (TDD) for infrastructure code are undeniable. But we shouldn´t settle there! What about executing these tests automatically and based on a regular schedule? Applying Continuous Integration to infrastructure code should be the next step.
+
+So let's configure TravisCI to do the magic continuously and therefore add all those steps from [create_all.sh](create_all.sh) to our [.travis.yml](.travis.yml):
+
+```
+script:
+  # login to app.pulumi.com with the predefined PULUMI_ACCESS_TOKEN
+  - pulumi login
+
+  # Select your Pulumi projects' stack
+  - pulumi stack select dev
+
+  # destroy pre-created Pulumi instances
+  - pulumi destroy --yes
+
+  # generate EC2 keypair and save private key locally (since Pulumi isn't able to do that now)
+  - ansible-playbook keypair.yml
+
+  # execute Pulumi to create EC2 instances
+  - pulumi up --yes
+
+  # Downloading the Ansible role 'docker' with ansible-galaxy
+  - ansible-galaxy install -r requirements.yml -p roles/
+
+  # run Ansible role to install Docker on Ubuntu
+  - ansible-playbook playbook.yml
+
+  # use Testinfra with Pytest to execute our tests
+  - py.test -v tests/test_docker.py --ssh-identity-file=.ec2ssh/pulumi_key --ssh-config=tests/pytest_ssh_config --hosts='ssh://'$(pulumi stack output publicIp)
+
+  # destroy Pulumi instances after successful tests
+  - pulumi destroy --yes
+```
+
 
 
 

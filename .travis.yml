@@ -36,7 +36,23 @@ script:
   # Select your Pulumi projects' stack
   - pulumi stack select dev
 
-  # Run Pulumi unattended
+  # destroy pre-created Pulumi instances
+  - pulumi destroy --yes
+
+  # generate EC2 keypair and save private key locally (since Pulumi isn't able to do that now)
+  - ansible-playbook keypair.yml
+
+  # execute Pulumi to create EC2 instances
   - pulumi up --yes
-  # After everything has been created, we should also destroy the infrastructure again
+
+  # Downloading the Ansible role 'docker' with ansible-galaxy
+  - ansible-galaxy install -r requirements.yml -p roles/
+
+  # run Ansible role to install Docker on Ubuntu
+  - ansible-playbook playbook.yml
+
+  # use Testinfra with Pytest to execute our tests
+  - py.test -v tests/test_docker.py --ssh-identity-file=.ec2ssh/pulumi_key --ssh-config=tests/pytest_ssh_config --hosts='ssh://'$(pulumi stack output publicIp)
+
+  # destroy Pulumi instances after successful tests
   - pulumi destroy --yes
