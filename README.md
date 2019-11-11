@@ -14,6 +14,31 @@ Example project showing how to use Pulumi locally & with TravisCI to create Infr
 
 See https://github.com/jonashackt/pulumi-talk#what-is-pulumi for more info on "What is Pulumi?".
 
+## Table of Contents  
+* [Prerequisites](#prerequisites)
+  * [Install Pulumi](#install-pulumi)
+  * [Configure AWS credentials](#configure-aws-credentials)
+* [An example Project with AWS & Python](#an-example-project-with-aws--python)
+  * [A clean Python environment with virtualenv](#a-clean-python-environment-with-virtualenv)
+  * [Pulumi first run](#pulumi-first-run)
+* [A comparable Use Case](#a-comparable-use-case)
+  * [Build a common ground: Create an EC2 instance with SSH access](#build-a-common-ground-create-an-ec2-instance-with-ssh-access)
+* [Run Pulumi with Travis](#run-pulumi-with-travis)
+  * [Configure TravisCI to connect to AWS & app.pulumi.com](#configure-travisci-to-connect-to-aws--apppulumicom)
+  * [Install & configure Pulumi on TravisCI](#install--configure-pulumi-on-travisci)
+  * [Fire up Pulumi on TravisCI](#fire-up-pulumi-on-travisci)
+* [Install Docker on EC2 instance](#install-docker-on-ec2-instance)
+  * [Creating an EC2 keypair with Ansible & firing up an EC2 instance with Pulumi](#creating-an-ec2-keypair-with-ansible--firing-up-an-ec2-instance-with-pulumi)
+  * [SSH connection to the Pulumi created EC2 instance](#ssh-connection-to-the-pulumi-created-ec2-instance)
+  * [Configure outgoing traffic for apt with a second Security group rule ("egress")](#configure-outgoing-traffic-for-apt-with-a-second-security-group-rule-egress)
+  * [Reuse Ansible role 'docker' with ansible-galaxy CLI & requirements.yml](#reuse-ansible-role-docker-with-ansible-galaxy-cli--requirementsyml)
+* [Test-driven Development with Pulumi](#test-driven-development-with-pulumi)
+  * [Using Testinfra for Testing Python based Pulumi code](#using-testinfra-for-testing-python-based-pulumi-code)
+  * [Configure the Pulumi created EC2 instance in Testinfra/pytest](#configure-the-pulumi-created-ec2-instance-in-testinfrapytest)
+  * [Continuous Cloud infrastructure with Pulumi, Ansible & Testinfra on TravisCI](#continuous-cloud-infrastructure-with-pulumi-ansible--testinfra-on-travisci)
+
+
+
 
 ## Prerequisites
 
@@ -1007,7 +1032,7 @@ If this is empty, AWS connectivity won't work!
 After that's safe, the `aws CLI` has to be configured as usual. Now the TravisCI build is ready for it's script phase! After a `pulumi login` based on the correctly set `PULUMI_ACCESS_TOKEN` and the selection of the wanted Pulumi stack via `pulumi stack select dev`, you can start using Pulumi!
 
 
-### Test-driven Development with Pulumi
+## Test-driven Development with Pulumi
 
 https://www.pulumi.com/blog/testing-your-infrastructure-as-code-with-pulumi/
 
@@ -1020,7 +1045,7 @@ Discussion to test harnesses ended in this https://github.com/pulumi/pulumi/issu
 There's a 1 star plugin for [Chef's TDD harness tool kitchenCI](https://kitchen.ci/): https://github.com/jacoblearned/kitchen-pulumi
 
 
-##### Using Testinfra for Testing Python based Pulumi code
+### Using Testinfra for Testing Python based Pulumi code
 
 So there are currently no docs/articles available on how to test Python based Pulumi setups. But there are [great tools around for doing testing in the Python world](https://blog.codecentric.de/en/2018/12/test-driven-infrastructure-ansible-molecule/)) - like pytest and [Testinfra](https://testinfra.readthedocs.io/en/latest/). So why not use them?!
 
@@ -1057,7 +1082,7 @@ def test_run_hello_world_container_successfully(host):
 All we have to change here, is the way how Testinfra gets to know about the Pulumi created EC2 instances, since we don't have a Molecule inventory file here anymore. So let's delete the parts containing `import testinfra.utils.ansible_runner` and `MOLECULE_INVENTORY_FILE` and try to somehow configure the Testinfra hosts in another way.
 
 
-##### Configure the Pulumi created EC2 instance in Testinfra/pytest
+### Configure the Pulumi created EC2 instance in Testinfra/pytest
 
 We should now be able to finally run our Testinfra test code with pytest?! Well, we need to tweak the standard `py.test -v tests/test_docker.py` command a bit before!
 
@@ -1100,7 +1125,7 @@ If everything went well, the output should look somehow like this:
 ![pytest-testinfra-successful-passed](screenshots/pytest-testinfra-successful-passed.png)
 
 
-##### Continuous Cloud infrastructure with Pulumi, Ansible & Testinfra on TravisCI
+### Continuous Cloud infrastructure with Pulumi, Ansible & Testinfra on TravisCI
 
 Now we should have everything prepared to let this setup run not only once - but continuously! Quoting [this blog post](https://blog.codecentric.de/en/2018/12/continuous-infrastructure-ansible-molecule-travisci/):
 
@@ -1140,19 +1165,6 @@ script:
 
 
 
-
-
-### Run a Dockerized application on AWS with Pulumi
-
-Example app: https://github.com/jonashackt/spring-boot-vuejs
-
-Pulumi API reference for the Pulumi Docker provider: https://www.pulumi.com/docs/reference/pkg/python/pulumi_docker/ (interestingly this Pulumi docker provider is derived from the [Terraform Docker provider](https://github.com/terraform-providers/terraform-provider-docker))
-
-Second interesting point: The docs for the JavaScript/Typescript version of the Pulumi Docker provider are much nicer to view: https://www.pulumi.com/docs/reference/pkg/nodejs/pulumi/docker/
-
-
-
-### Using AWS Fargate to run a Dockerized application
 
 
 
