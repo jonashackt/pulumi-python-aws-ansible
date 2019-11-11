@@ -32,6 +32,9 @@ See https://github.com/jonashackt/pulumi-talk#what-is-pulumi for more info on "W
   * [SSH connection to the Pulumi created EC2 instance](#ssh-connection-to-the-pulumi-created-ec2-instance)
   * [Configure outgoing traffic for apt with a second Security group rule ("egress")](#configure-outgoing-traffic-for-apt-with-a-second-security-group-rule-egress)
   * [Reuse Ansible role 'docker' with ansible-galaxy CLI & requirements.yml](#reuse-ansible-role-docker-with-ansible-galaxy-cli--requirementsyml)
+* [Replace direct usage of virtualenv and pip with pipenv](#replace-direct-usage-of-virtualenv-and-pip-with-pipenv)
+  * [Configure renovate and shields.io badges to use our pipenv managed versions](#configure-renovate-and-shieldsio-badges-to-use-our-pipenv-managed-versions)
+  * [Using pipenv on TravisCI](#using-pipenv-on-travisci)
 * [Test-driven Development with Pulumi](#test-driven-development-with-pulumi)
   * [Using Testinfra for Testing Python based Pulumi code](#using-testinfra-for-testing-python-based-pulumi-code)
   * [Configure the Pulumi created EC2 instance in Testinfra/pytest](#configure-the-pulumi-created-ec2-instance-in-testinfrapytest)
@@ -904,7 +907,7 @@ And here's also a recording of the whole thing:
 [![asciicast](https://asciinema.org/a/273830.svg)](https://asciinema.org/a/273830)
 
 
-##### Replace direct usage of virtualenv and pip with pipenv
+## Replace direct usage of virtualenv and pip with pipenv
 
 While `virtualenv` does a great job to seperate Python build dependencies from different projects (and your system's pip packages), the `requirements.txt` doesn't lead to fully deterministic builds, because it doesn't manage transient dependencies - and Python packages tend to use unpinned dependencies -> so different environments could lead to different build outputs (see this article for more details: https://realpython.com/pipenv-guide/).
 
@@ -936,7 +939,7 @@ We can now also add Ansible as a requirement, since our project depends on it, i
 pipenv install ansible boto3
 ```
 
-##### Configure renovate and shields.io badges to use our pipenv managed versions
+#### Configure renovate and shields.io badges to use our pipenv managed versions
 
 As this project is kept up-to-date by [renovate](https://github.com/renovatebot/renovate), we should configure the [renovate.json](renovate.json) configuration file to tell renovate about pipenv ([which is currently a beta feature](https://docs.renovatebot.com/configuration-options/#pipenv)):
 
@@ -967,7 +970,7 @@ There was a recent update to the dynamic shields.io endpoint (have a look into h
 Now every badge stays up-to-date with every renovate update - like this one here: [![versionpulumi](https://img.shields.io/github/pipenv/locked/dependency-version/jonashackt/pulumi-python-aws-ansible/pulumi?color=brightgreen)](https://www.pulumi.com/)
 
 
-##### Using pipenv on TravisCI
+#### Using pipenv on TravisCI
 
 As we're now using `pipenv` for dependecy management, we could also rework our TravisCI configuration. [As this post states](https://medium.com/@dirk.avery/quirks-of-pipenv-on-travis-ci-and-appveyor-10d6adb6c55b) and we already learned, TravisCI uses `virtualenv` environment per default. Now `pipenv` is luckily smart enough to detect that, so all we have to do is the following inside our [.travis.yml](.travis.yml):
 
