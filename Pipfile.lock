@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "dd6d17fda0a28847a14cf12eb70282d43508590e0277cc01325ecced242e2116"
+            "sha256": "8cb707f6db69144586e8fdb19dd800a064baef6b0eb3a221094164b75287eaeb"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -39,11 +39,11 @@
         },
         "awscli": {
             "hashes": [
-                "sha256:bc84b0dbbb824df5fe87dc59c47a2d0f04bac8e9e42f56152758dc90b4eb90f1",
-                "sha256:f51da90c111d15fd87c1e1f9b204e9ae5312723d81aff81df2f949ed5093e6f3"
+                "sha256:0a1373a2c1f5c56c76b8c58c993fb0bafb6bfadeb4a609b4069d94d8811e75bc",
+                "sha256:206b8ed8f4f134a84d4c24fe2153e8e4c9b4c92ef4c0e298d59f7c9af192f978"
             ],
             "index": "pypi",
-            "version": "==1.16.287"
+            "version": "==1.16.289"
         },
         "boto3": {
             "hashes": [
@@ -55,10 +55,10 @@
         },
         "botocore": {
             "hashes": [
-                "sha256:4389d2e97a453f769b613d66128148ae0179d56c12651d27bcb6aec9e2bf5fea",
-                "sha256:6c7cf235dcb4ff27eb240fa62fc1cb9e1438578116cd8e9179111dbb4f9b325e"
+                "sha256:826fd1f664ac8629505582966d16c3844e9d438f873904ab0bf6ac559db15e31",
+                "sha256:8979ac048eb3b4fbc3be27534c8c6743fb399432d4d88f2b729403e726182353"
             ],
-            "version": "==1.13.23"
+            "version": "==1.13.25"
         },
         "cffi": {
             "hashes": [
@@ -277,10 +277,10 @@
         },
         "pluggy": {
             "hashes": [
-                "sha256:0db4b7601aae1d35b4a033282da476845aa19185c1e6964b25cf324b5e4ec3e6",
-                "sha256:fa5fa1622fa6dd5c030e9cad086fa19ef6a0cf6d7a2d12318e10cb49d6d68f34"
+                "sha256:15b2acde666561e1298d71b523007ed7364de07029219b604cf808bfa1c765b0",
+                "sha256:966c145cd83c96502c3c3868f50408687b38434af77734af1e9ca461a4081d2d"
             ],
-            "version": "==0.13.0"
+            "version": "==0.13.1"
         },
         "protobuf": {
             "hashes": [
