@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "3ab4e3a289e86247b5d71b8dd9b1c9f371164b40e1b81dd379720e68e680741a"
+            "sha256": "6131013a04d5d91dcea45a2b8a84c91643d05a6195d7e0fc358ba379b238b83e"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -39,11 +39,11 @@
         },
         "awscli": {
             "hashes": [
-                "sha256:5d94d0e8e762dc393b9c197a419d3f2b9f1f6103266f2d7f01893577bda64d2a",
-                "sha256:9f09cfd37958fcc8eb1e8c945c3ede6016da6e4f217c12aeb5c187fec887137f"
+                "sha256:7ab73a6d01855ab38f039d2473a7e40b7654fc1ce31a9e68f378d855d77412ef",
+                "sha256:fb2260653e4397e7f5aee3c9ea2d9582ef4fdccdf75c17e1f85e44dbf6d21bf2"
             ],
             "index": "pypi",
-            "version": "==1.16.297"
+            "version": "==1.16.298"
         },
         "boto3": {
             "hashes": [
@@ -55,10 +55,10 @@
         },
         "botocore": {
             "hashes": [
-                "sha256:4861785b52b0b3f97da91613c31f8e501f12517c9c79482b44efbdb56b69aefc",
-                "sha256:9cc87d7906693c9c8fe862c574a1bebbe22a0475d6991e9b7251bc93cb1954d9"
+                "sha256:55c82a4eda277ae145691783c064b0d6600e60e80bd379ca07eaef1cfe34a148",
+                "sha256:7350d9bcaec0ec3127f808bfb75fa0114b5b6b09a485b0dba66d739c3654521b"
             ],
-            "version": "==1.13.33"
+            "version": "==1.13.34"
         },
         "cffi": {
             "hashes": [
@@ -256,10 +256,10 @@
         },
         "more-itertools": {
             "hashes": [
-                "sha256:53ff73f186307d9c8ef17a9600309154a6ae27f25579e80af4db8f047ba14bc2",
-                "sha256:a0ea684c39bc4315ba7aae406596ef191fd84f873d2d2751f84d64e81a7a2d45"
+                "sha256:57cc732766f26ddc424a4ed76d837677777a03f557c7ebeecb7e2be2888ce702",
+                "sha256:a293dbdad9d4d22e1e70832b8dcab72aac20805f0fa0575aec27cab8841e09ff"
             ],
-            "version": "==8.0.0"
+            "version": "==8.0.1"
         },
         "packaging": {
             "hashes": [
