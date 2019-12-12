@@ -11,7 +11,7 @@ pulumi-aws = "==1.7.0"
 ansible = "==2.9.2"
 awscli = "==1.16.302"
 testinfra = "==3.3.0"
-boto3 = "==1.10.37"
+boto3 = "==1.10.38"
 
 [requires]
 python_version = "3.7"
