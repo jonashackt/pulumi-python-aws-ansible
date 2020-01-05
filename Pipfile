@@ -10,7 +10,7 @@ pulumi = "==1.8.1"
 pulumi-aws = "==1.7.0"
 ansible = "==2.9.2"
 awscli = "==1.16.310"
-testinfra = "==3.3.0"
+testinfra = "==3.4.0"
 boto3 = "==1.10.46"
 
 [requires]
