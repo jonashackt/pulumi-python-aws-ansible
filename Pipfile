@@ -8,7 +8,7 @@ verify_ssl = true
 [packages]
 pulumi = "==1.8.1"
 pulumi-aws = "==1.7.0"
-ansible = "==2.9.3"
+ansible = "==2.9.4"
 awscli = "==1.16.314"
 testinfra = "==4.0.0"
 boto3 = "==1.10.50"
