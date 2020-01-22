@@ -672,16 +672,10 @@ So let's do that also with Ansible. We simply create a [keypair.yml](keypair.yml
         path: ".ec2ssh"
         state: directory
 
-    - name: Test for presence of local keypair
-      stat:
-        path: "{{ keypair_path }}"
-      register: keypair_local
-
     - name: Delete remote keypair
       ec2_key:
         name: "{{ keypair_name }}"
         state: absent
-      when: not keypair_local.stat.exists
 
     - name: Create keypair
       ec2_key:
@@ -693,7 +687,6 @@ So let's do that also with Ansible. We simply create a [keypair.yml](keypair.yml
         dest: "{{ keypair_path }}"
         content: "{{ keypair.key.private_key }}"
         mode: 0600
-      when: keypair.changed
 ```
 
 To run the playbook you should have Ansible (and boto3 for AWS accessibility) installed on our system:
@@ -781,7 +774,7 @@ We should also create a proper [ansible.cfg](ansible.cfg) containing `ssh_args =
 If nothing seems to work, you can debug the SSH connection with direct usage of Ansible ping module like this (insert the public IP retrieved by `pulumi stack output publicIp` and append a `,`):
 
 ```
-ansible -i 3.120.32.99, -m ping all --user=ubuntu --private-key=.ec2ssh/pulumi_key -vvv
+ansible -i $(pulumi stack output publicIp), -m ping all --user=ubuntu --private-key=.ec2ssh/pulumi_key -vvv
 ```
 
 #### Configure outgoing traffic for apt with a second Security group rule ("egress")
