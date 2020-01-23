@@ -1,4 +1,4 @@
 # this file isn't maintained anymore, since this project uses pipenv now
 # have a look at Pipfile for current versions!
-pulumi==1.8.1
+pulumi==1.9.0
 pulumi-aws==1.18.0
