@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "0f0a6b84e4750ef2d8ec6c7119d0ae93d63c8c142997ff7aa0a0cca1b334cbe6"
+            "sha256": "6691e46f93f2d92d80911c4acf0d4a8470788e9991f1dd5b4ab4c74a392677fc"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -204,10 +204,10 @@
         },
         "jinja2": {
             "hashes": [
-                "sha256:6e7a3c2934694d59ad334c93dd1b6c96699cf24c53fdb8ec848ac6b23e685734",
-                "sha256:d6609ae5ec3d56212ca7d802eda654eaf2310000816ce815361041465b108be4"
+                "sha256:93187ffbc7808079673ef52771baa950426fd664d3aad1d0fa3e95644360e250",
+                "sha256:b0eaf100007721b5c16c1fc1eecb87409464edc10469ddc9a22a27a99123be49"
             ],
-            "version": "==2.11.0"
+            "version": "==2.11.1"
         },
         "jmespath": {
             "hashes": [
@@ -314,10 +314,10 @@
         },
         "pulumi-aws": {
             "hashes": [
-                "sha256:532c5282979b14e5655aa53a21829afb09460b451082c1d82baa18a5e5a7ff17"
+                "sha256:95f9b2d8d2730f335065a2f2a448f2f5e08ea7208ea3de02fe4523376abd3f1a"
             ],
             "index": "pypi",
-            "version": "==1.19.0"
+            "version": "==1.20.0"
         },
         "py": {
             "hashes": [
@@ -348,10 +348,10 @@
         },
         "pytest": {
             "hashes": [
-                "sha256:1d122e8be54d1a709e56f82e2d85dcba3018313d64647f38a91aec88c239b600",
-                "sha256:c13d1943c63e599b98cf118fcb9703e4d7bde7caa9a432567bcdcae4bf512d20"
+                "sha256:0d5fe9189a148acc3c3eb2ac8e1ac0742cb7618c084f3d228baaec0c254b318d",
+                "sha256:ff615c761e25eb25df19edddc0b970302d2a9091fbce0e7213298d85fb61fef6"
             ],
-            "version": "==5.3.4"
+            "version": "==5.3.5"
         },
         "python-dateutil": {
             "hashes": [
