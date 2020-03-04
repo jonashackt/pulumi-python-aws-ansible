@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "df64cef95a7e37811e7ad676577989c3c3098929b09d4e32aa51201f7a0b44e3"
+            "sha256": "5e2fc8f7c308a6d26f7343583919e3602202cfcf3a997643c5cb087f889515ce"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -302,10 +302,10 @@
         },
         "pulumi": {
             "hashes": [
-                "sha256:ee0099f6bf8090e1cb58114389b4a0210165c64d134048a27579e749cec6c630"
+                "sha256:a9043c5fc61b4d73fa2e9d65b381e6e5bea1a4099be6a00b0d9dcfb873d01059"
             ],
             "index": "pypi",
-            "version": "==1.11.1"
+            "version": "==1.12.0"
         },
         "pulumi-aws": {
             "hashes": [
@@ -330,9 +330,10 @@
         },
         "pycparser": {
             "hashes": [
-                "sha256:a988718abfad80b6b157acce7bf130a30876d27603738ac39f140993246b25b3"
+                "sha256:2d475327684562c3a96cc71adf7dc8c4f0565175cf86b6d7a404ff4c771f15f0",
+                "sha256:7582ad22678f0fcd81102833f60ef8d0e57288b6b5fb00323d101be910e35705"
             ],
-            "version": "==2.19"
+            "version": "==2.20"
         },
         "pyparsing": {
             "hashes": [
