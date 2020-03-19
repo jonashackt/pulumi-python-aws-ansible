@@ -9,7 +9,7 @@ verify_ssl = true
 pulumi = "==1.13.0"
 pulumi-aws = "==1.27.0"
 ansible = "==2.9.6"
-awscli = "==1.18.24"
+awscli = "==1.18.25"
 testinfra = "==5.0.0"
 boto3 = "==1.12.24"
 
