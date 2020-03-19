@@ -6,7 +6,7 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-pulumi = "==1.12.1"
+pulumi = "==1.13.0"
 pulumi-aws = "==1.27.0"
 ansible = "==2.9.6"
 awscli = "==1.18.24"
