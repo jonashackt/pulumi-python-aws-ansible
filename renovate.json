@@ -9,5 +9,11 @@
   },
   "pipenv": {
     "enabled": true
-  }
+  },
+  "packageRules": [
+    {
+      "packagePatterns": ["aws", "boto"],
+      "groupName": "aws packages"
+    }
+  ]
 }
