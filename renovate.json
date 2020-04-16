@@ -13,7 +13,12 @@
   "packageRules": [
     {
       "packagePatterns": ["aws", "boto"],
-      "groupName": "aws packages"
+      "groupName": "aws packages",
+      "automerge": true,
+      "automergeType": "branch",
+      "major": {
+        "automerge": false
+      }
     }
   ]
 }
