@@ -1,5 +1,5 @@
 # pulumi-python-aws-ansible
-[![Build Status](https://travis-ci.org/jonashackt/pulumi-python-aws-ansible.svg?branch=master)](https://travis-ci.org/jonashackt/pulumi-python-aws-ansible)
+[![Build Status](https://travis-ci.com/jonashackt/pulumi-python-aws-ansible.svg?branch=master)](https://travis-ci.com/jonashackt/pulumi-python-aws-ansible)
 [![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/jonashackt/spring-boot-vuejs/blob/master/LICENSE)
 [![renovateenabled](https://img.shields.io/badge/renovate-enabled-yellow)](https://renovatebot.com)
 [![versionpulumi](https://img.shields.io/github/pipenv/locked/dependency-version/jonashackt/pulumi-python-aws-ansible/pulumi?color=brightgreen)](https://www.pulumi.com/)
