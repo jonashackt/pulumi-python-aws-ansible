@@ -3,7 +3,7 @@ import pulumi_aws as aws
 from pulumi_aws import ec2
 
 # AMI image configuration
-ec2_image_id = 'ami-0cc0a36f626a4fdf5'
+ec2_image_id = 'ami-07d1bb89ff2dd50fe'
 ec2_image_owner = '099720109477'
 ec2_instance_size = 't2.micro'
 ec2_instance_name = 'aws-ec2-ubuntu'
