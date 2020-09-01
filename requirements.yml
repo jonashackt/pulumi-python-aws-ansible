@@ -1,5 +1,5 @@
 # Don't mix up with Pythons' requirements.txt! This file manages Ansible role dependencies
 
 # dependency to docker role
-- src: https://github.com/jonashackt/molecule-ansible-docker-vagrant
+- src: https://github.com/jonashackt/molecule-ansible-docker-aws
   name: docker
