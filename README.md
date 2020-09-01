@@ -661,7 +661,6 @@ So let's do that also with Ansible. We simply create a [keypair.yml](keypair.yml
 ```yaml
 - name: Create EC2 Keypair
   hosts: localhost
-  connection: local
   gather_facts: false
   vars:
     keypair_name: pulumi_key
@@ -735,7 +734,6 @@ With that [the key pair's public key is configured inside our new EC2 instance](
 ```yaml
 - name: Connect to Pulumi created EC2 instance and install Docker
   hosts: localhost
-  connection: local
   vars:
     keypair_name: pulumi_key
     keypair_path: ".ec2ssh//{{ keypair_name }}"

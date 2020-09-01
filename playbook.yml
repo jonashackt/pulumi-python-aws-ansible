@@ -1,7 +1,6 @@
 ---
 - name: Connect to Pulumi created EC2 instance and install Docker
   hosts: localhost
-  connection: local
   vars:
     keypair_name: pulumi_key
     keypair_path: ".ec2ssh//{{ keypair_name }}"
@@ -30,7 +29,7 @@
     # from our delegate_to host (EC2 instance)
     - name: Gather facts of Pulumi created EC2 instance for later role execution
       setup:
-      delegate_to: "{{ ec2_public_ip }}"
+      delegate_to: '{{ ec2_public_ip }}'
       vars:
         ansible_ssh_private_key_file: "{{ keypair_path }}"
         ansible_user: ubuntu
@@ -38,7 +37,7 @@
     - name: Now use the ansible-galaxy prepared docker role to install Docker on our EC2 instance
       import_role:
         name: docker
-      delegate_to: "{{ ec2_public_ip }}"
+      delegate_to: '{{ ec2_public_ip }}'
       become: true
       vars:
         ansible_ssh_private_key_file: "{{ keypair_path }}"
