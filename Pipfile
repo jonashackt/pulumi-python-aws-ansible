@@ -9,9 +9,9 @@ verify_ssl = true
 pulumi = "==1.14.1"
 pulumi-aws = "==1.31.0"
 ansible = "==2.10.0"
-awscli = "==1.18.148"
+awscli = "==1.18.149"
 testinfra = "==5.3.1"
-boto3 = "==1.15.7"
+boto3 = "==1.15.8"
 
 [requires]
 python_version = "3.8"
