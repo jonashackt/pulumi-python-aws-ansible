@@ -54,6 +54,8 @@ jobs:
     - name: Downloading the Ansible role 'docker' with ansible-galaxy & run Ansible role to install Docker on Ubuntu
       run: |
         pipenv run ansible-galaxy install -r requirements.yml -p roles/
+        echo "Select your Pulumi projects stack"
+        pulumi stack select dev
         pipenv run ansible-playbook playbook.yml
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
