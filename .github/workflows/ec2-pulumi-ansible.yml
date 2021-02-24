@@ -37,6 +37,10 @@ jobs:
 
     - name: Generate EC2 keypair and save private key locally (since Pulumi isn't able to do that now)
       run: pipenv run ansible-playbook keypair.yml
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: eu-central-1
 
     - name: Execute Pulumi to create EC2 instances
       uses: pulumi/actions@v1
@@ -51,6 +55,10 @@ jobs:
       run: |
         pipenv run ansible-galaxy install -r requirements.yml -p roles/
         pipenv run ansible-playbook playbook.yml
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: eu-central-1
 
     - name: Install Pulumi CLI using the install-pulumi-cli GitHub Action needed for pytest hosts variable
       uses: pulumi/action-install-pulumi-cli@v1.0.1
