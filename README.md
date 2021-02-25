@@ -1,5 +1,5 @@
 # pulumi-python-aws-ansible
-[![Build Status](https://travis-ci.com/jonashackt/pulumi-python-aws-ansible.svg?branch=master)](https://travis-ci.com/jonashackt/pulumi-python-aws-ansible)
+[![Build Status](https://github.com/jonashackt/pulumi-python-aws-ansible/workflows/ec2-pulumi-ansible/badge.svg)](https://github.com/jonashackt/pulumi-python-aws-ansible/actions)
 [![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/jonashackt/spring-boot-vuejs/blob/master/LICENSE)
 [![renovateenabled](https://img.shields.io/badge/renovate-enabled-yellow)](https://renovatebot.com)
 [![versionpulumi](https://img.shields.io/github/pipenv/locked/dependency-version/jonashackt/pulumi-python-aws-ansible/pulumi?color=brightgreen)](https://www.pulumi.com/)
@@ -39,7 +39,7 @@ See https://github.com/jonashackt/pulumi-talk#what-is-pulumi for more info on "W
   * [Using Testinfra for Testing Python based Pulumi code](#using-testinfra-for-testing-python-based-pulumi-code)
   * [Configure the Pulumi created EC2 instance in Testinfra/pytest](#configure-the-pulumi-created-ec2-instance-in-testinfrapytest)
   * [Continuous Cloud infrastructure with Pulumi, Ansible & Testinfra on TravisCI](#continuous-cloud-infrastructure-with-pulumi-ansible--testinfra-on-travisci)
-
+* [Run Pulumi on GitHub Actions](#run-pulumi-on-github-actions)
 
 
 
@@ -1157,6 +1157,248 @@ script:
   - pulumi destroy --yes
 ```
 
+
+## Run Pulumi on GitHub Actions
+
+As we're forced to move away from TravisCI (see https://blog.codecentric.de/en/2021/02/github-actions-pipeline/), we also need to move our setup to GitHub Actions.
+
+Therefore let's create a [.github/workflows/ec2-pulumi-ansible.yml](.github/workflows/ec2-pulumi-ansible.yml) workflow file.
+
+I already used the great Pulumi GitHub Action at https://github.com/jonashackt/azure-training-pulumi/blob/main/.github/workflows/preview-and-up.yml and I really loved it.
+
+The documentation also provides us with an example to use Pulumi with AWS https://www.pulumi.com/docs/guides/continuous-delivery/github-actions/ which would reduce the code needed with Travis I guess.
+
+In order to use [the pulumi GitHub Action](https://github.com/pulumi/actions) with AWS we need to create the two repository secrets `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` first. We also need to create the `PULUMI_ACCESS_TOKEN` containing a Pulumi access token we need to freshly create in our Pulumi console at https://app.pulumi.com/jonashackt/settings/tokens. Create all three secrets in `Settings/Secrets` of your repository:
+
+![github-actions-repo-secrets](screenshots/github-actions-repo-secrets.png)
+
+Now let's have a look into the [.github/workflows/ec2-pulumi-ansible.yml](.github/workflows/ec2-pulumi-ansible.yml):
+
+
+
+In my first attempts I used [the pulumi GitHub Action](https://github.com/pulumi/actions) which is really really great to get you started fast. If you have a look at the examples like in https://www.pulumi.com/docs/guides/continuous-delivery/github-actions/ you may tend to repeatedly use the Pulumi Action incl. repeating the environment variables needed.
+
+So you end up with something like this:
+
+```yaml
+ name: ec2-pulumi-ansible
+
+ on: [push]
+
+ jobs:
+   ec2-pulumi-ansible:
+     runs-on: ubuntu-latest
+
+     steps:
+       - uses: actions/checkout@v2
+
+       - name: Cache pipenv virtualenvs incl. all pip packages
+         uses: actions/cache@v2
+         with:
+           path: ~/.local/share/virtualenvs
+           key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
+           restore-keys: |
+             ${{ runner.os }}-pipenv-
+
+       - uses: actions/setup-python@v2
+         with:
+           python-version: '3.9'
+
+       - name: Install required dependencies with pipenv
+         run: |
+           pip install pipenv
+           pipenv install
+
+       - name: Destroy pre-created Pulumi instances
+         uses: pulumi/actions@v1
+         with:
+           command: destroy
+         env:
+           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+
+       - name: Generate EC2 keypair and save private key locally (since Pulumi isn't able to do that now)
+         run: pipenv run ansible-playbook keypair.yml
+         env:
+           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+           AWS_REGION: eu-central-1
+
+       - name: Execute Pulumi to create EC2 instances
+         uses: pulumi/actions@v1
+         with:
+           command: up
+         env:
+           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+
+       - name: Downloading the Ansible role 'docker' with ansible-galaxy & run Ansible role to install Docker on Ubuntu
+         run: |
+           pipenv run ansible-galaxy install -r requirements.yml -p roles/
+           echo "Select your Pulumi projects stack"
+           pulumi stack select dev
+           pipenv run ansible-playbook playbook.yml
+         env:
+           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+           AWS_REGION: eu-central-1
+           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+
+       - name: Use Testinfra with Pytest to execute our tests
+         run: pipenv run py.test -v tests/test_docker.py --ssh-identity-file=.ec2ssh/pulumi_key --ssh-config=tests/pytest_ssh_config --hosts='ssh://'$(pulumi stack output publicIp)
+         env:
+           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+
+       - name: Destroy Pulumi instances after successful tests
+         uses: pulumi/actions@v1
+         with:
+           command: destroy
+         env:
+           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+```
+
+That's not bad at all! We even do caching using [the GHA cache action](https://github.com/actions/cache)! Especially the `key` definition with `key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}` is something to keep an eye on.
+
+[The `hashFiles` function](https://docs.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#hashfiles) is really cool, since it will invalidate the cache only, if our `Pipfile.lock` (which could reside somewhere in the repository) changes.
+
+Taking the next step in optimizing our GHA workflow, we can use GHA's ability [to condense environment variables on the step or even job level](https://docs.github.com/en/actions/reference/environment-variables). This leads to a much leaner workflow file:
+
+```yaml
+name: ec2-pulumi-ansible
+
+on: [push]
+
+jobs:
+  ec2-pulumi-ansible:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: eu-central-1
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Cache pipenv virtualenvs incl. all pip packages
+      uses: actions/cache@v2
+      with:
+        path: ~/.local/share/virtualenvs
+        key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-pipenv-
+
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+
+    - name: Install required dependencies with pipenv
+      run: |
+        pip install pipenv
+        pipenv install
+
+    - name: Destroy pre-created Pulumi instances
+      uses: pulumi/actions@v1
+      with:
+        command: destroy
+
+    - name: Generate EC2 keypair and save private key locally (since Pulumi isn't able to do that now)
+      run: pipenv run ansible-playbook keypair.yml
+
+    - name: Execute Pulumi to create EC2 instances
+      uses: pulumi/actions@v1
+      with:
+        command: up
+
+    - name: Downloading the Ansible role 'docker' with ansible-galaxy & run Ansible role to install Docker on Ubuntu
+      run: |
+        pipenv run ansible-galaxy install -r requirements.yml -p roles/
+        echo "Select your Pulumi projects stack"
+        pulumi stack select dev
+        pipenv run ansible-playbook playbook.yml
+
+    - name: Use Testinfra with Pytest to execute our tests
+      run: pipenv run py.test -v tests/test_docker.py --ssh-identity-file=.ec2ssh/pulumi_key --ssh-config=tests/pytest_ssh_config --hosts='ssh://'$(pulumi stack output publicIp)
+
+    - name: Destroy Pulumi instances after successful tests
+      uses: pulumi/actions@v1
+      with:
+        command: destroy
+```
+
+Having a look [at the build log](https://github.com/jonashackt/pulumi-python-aws-ansible/runs/1976853168?check_suite_focus=true), I got aware of another point we could optimize. As you can see [the pulumi GitHub Action](https://github.com/pulumi/actions) introduces a step called `Build pulumi/action@v1` which seems to pull and prepare a container to run Pulumi in the steps later.
+
+This step takes 2 1/2 minutes in every build. And it's only there since we use the Pulumi GHA. Additionally every Pulumi GHA step collects every Python package needed to run Pulumi again and again - it simply doesn't recognize our setup here using https://docs.pipenv.org/
+
+So wouldn't it be better if we could craft a workflow, that is `pipenv` aware? Yes we can: We simply need to switch from the Pulumi GHA to only use the much simpler [install-pulumi-cli GitHub Action](https://github.com/pulumi/action-install-pulumi-cli). Now we can (and must) rely solely on our `pipenv` environment and our jobs will only need half of the execution time: 
+
+So finally our [.github/workflows/ec2-pulumi-ansible.yml](.github/workflows/ec2-pulumi-ansible.yml) looks like this:
+
+```yaml
+name: ec2-pulumi-ansible
+
+on: [push]
+
+jobs:
+  ec2-pulumi-ansible:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: eu-central-1
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cache pipenv virtualenvs incl. all pip packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.local/share/virtualenvs
+          key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pipenv-
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - name: Install Pulumi CLI
+        uses: pulumi/action-install-pulumi-cli@v1.0.1
+
+      - name: Install required dependencies with pipenv & login to Pulumi app & select stack
+        run: |
+          pip install pipenv
+          pipenv install
+
+          echo "login to app.pulumi.com with the predefined PULUMI_ACCESS_TOKEN"
+          pulumi login
+
+          echo "Select your Pulumi projects stack"
+          pulumi stack select dev
+
+      - name: Destroy pre-created Pulumi instances
+        run: pipenv run pulumi destroy --yes
+
+      - name: Generate EC2 keypair and save private key locally (since Pulumi isn't able to do that now)
+        run: pipenv run ansible-playbook keypair.yml
+
+      - name: Execute Pulumi to create EC2 instances
+        run: pipenv run pulumi up --yes
+
+      - name: Downloading the Ansible role 'docker' with ansible-galaxy & run Ansible role to install Docker on Ubuntu
+        run: |
+          pipenv run ansible-galaxy install -r requirements.yml -p roles/
+          pipenv run ansible-playbook playbook.yml
+
+      - name: Use Testinfra with Pytest to execute our tests
+        run: pipenv run py.test -v tests/test_docker.py --ssh-identity-file=.ec2ssh/pulumi_key --ssh-config=tests/pytest_ssh_config --hosts='ssh://'$(pulumi stack output publicIp)
+
+      - name: Destroy Pulumi instances after successful tests
+        run: pipenv run pulumi destroy --yes
+```
 
 
 
