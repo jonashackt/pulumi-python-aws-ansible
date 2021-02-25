@@ -5,7 +5,11 @@ on: [push]
 jobs:
   ec2-pulumi-ansible:
     runs-on: ubuntu-latest
-
+    env:
+      AWS_REGION: eu-central-1
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
     steps:
     - uses: actions/checkout@v2
 
@@ -30,26 +34,14 @@ jobs:
       uses: pulumi/actions@v1
       with:
         command: destroy
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
 
     - name: Generate EC2 keypair and save private key locally (since Pulumi isn't able to do that now)
       run: pipenv run ansible-playbook keypair.yml
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_REGION: eu-central-1
 
     - name: Execute Pulumi to create EC2 instances
       uses: pulumi/actions@v1
       with:
         command: up
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
 
     - name: Downloading the Ansible role 'docker' with ansible-galaxy & run Ansible role to install Docker on Ubuntu
       run: |
@@ -57,22 +49,11 @@ jobs:
         echo "Select your Pulumi projects stack"
         pulumi stack select dev
         pipenv run ansible-playbook playbook.yml
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_REGION: eu-central-1
-        PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
 
     - name: Use Testinfra with Pytest to execute our tests
-      run: py.test -v tests/test_docker.py --ssh-identity-file=.ec2ssh/pulumi_key --ssh-config=tests/pytest_ssh_config --hosts='ssh://'$(pulumi stack output publicIp)
-      env:
-        PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+      run: pipenv run py.test -v tests/test_docker.py --ssh-identity-file=.ec2ssh/pulumi_key --ssh-config=tests/pytest_ssh_config --hosts='ssh://'$(pulumi stack output publicIp)
 
     - name: Destroy Pulumi instances after successful tests
       uses: pulumi/actions@v1
       with:
         command: destroy
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
