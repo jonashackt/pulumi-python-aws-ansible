@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "642c0c95f854839688eb8e306e827a26debfe1511988c71f8864b1dd1dc98139"
+            "sha256": "97d2f8fe376d92ad992ca92fde636c464c8b130990e41022682e431111aacac5"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -18,10 +18,10 @@
     "default": {
         "ansible": {
             "hashes": [
-                "sha256:98e718aea82199be62db7731373d660627aa1e938d34446588f2f49c228638ee"
+                "sha256:843aa807813318b0c8a6684a2895c74a4ccfb3c01d2bb41a53856b2434ebaaec"
             ],
             "index": "pypi",
-            "version": "==2.10.4"
+            "version": "==3.0.0"
         },
         "ansible-base": {
             "hashes": [
@@ -337,17 +337,17 @@
         },
         "pulumi": {
             "hashes": [
-                "sha256:2e1ec036803a7dff77e29a07439c31bb812fb998b7c4249b9048adc4aa40d165"
+                "sha256:a8b5fc63b163b635e284e670d966277967d4caff99f6cc0ed45771ca18866f48"
             ],
             "index": "pypi",
-            "version": "==1.14.1"
+            "version": "==2.21.2"
         },
         "pulumi-aws": {
             "hashes": [
-                "sha256:c677571645af53050a9d211141d7778cd63a31d1acd44fd98dcc84a6a879724e"
+                "sha256:4766451117c17c3518cd0724a1a80d6aee7d0813eaac8edb2fe92b9280cb1ea7"
             ],
             "index": "pypi",
-            "version": "==1.31.0"
+            "version": "==3.30.1"
         },
         "py": {
             "hashes": [
