@@ -40,13 +40,13 @@ jobs:
           pulumi stack select dev
 
       - name: Destroy pre-created Pulumi instances
-        run: pulumi destroy --yes
+        run: pipenv run pulumi destroy --yes
 
       - name: Generate EC2 keypair and save private key locally (since Pulumi isn't able to do that now)
         run: pipenv run ansible-playbook keypair.yml
 
       - name: Execute Pulumi to create EC2 instances
-        run: pulumi up --yes
+        run: pipenv run pulumi up --yes
 
       - name: Downloading the Ansible role 'docker' with ansible-galaxy & run Ansible role to install Docker on Ubuntu
         run: |
@@ -57,4 +57,4 @@ jobs:
         run: pipenv run py.test -v tests/test_docker.py --ssh-identity-file=.ec2ssh/pulumi_key --ssh-config=tests/pytest_ssh_config --hosts='ssh://'$(pulumi stack output publicIp)
 
       - name: Destroy Pulumi instances after successful tests
-        run: pulumi destroy --yes
+        run: pipenv run pulumi destroy --yes
