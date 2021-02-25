@@ -1183,67 +1183,59 @@ on: [push]
 jobs:
   ec2-pulumi-ansible:
     runs-on: ubuntu-latest
-
+    env:
+      AWS_REGION: eu-central-1
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Cache pipenv virtualenvs incl. all pip packages
-      uses: actions/cache@v2
-      with:
-        path: ~/.local/share/virtualenvs
-        key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-pipenv-
+      - name: Cache pipenv virtualenvs incl. all pip packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.local/share/virtualenvs
+          key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pipenv-
 
-    - uses: actions/setup-python@v2
-      with:
-        python-version: '3.9'
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
 
-    - name: Install required dependencies with pipenv
-      run: |
-        pip install pipenv
-        pipenv install
+      - name: Install Pulumi CLI
+        uses: pulumi/action-install-pulumi-cli@v1.0.1
 
-    - name: Destroy pre-created Pulumi instances
-      uses: pulumi/actions@v1
-      with:
-        command: destroy
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+      - name: Install required dependencies with pipenv & login to Pulumi app & select stack
+        run: |
+          pip install pipenv
+          pipenv install
 
-    - name: Generate EC2 keypair and save private key locally (since Pulumi isn't able to do that now)
-      run: pipenv run ansible-playbook keypair.yml
+          echo "login to app.pulumi.com with the predefined PULUMI_ACCESS_TOKEN"
+          pulumi login
 
-    - name: Execute Pulumi to create EC2 instances
-      uses: pulumi/actions@v1
-      with:
-        command: up
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+          echo "Select your Pulumi projects stack"
+          pulumi stack select dev
 
-    - name: Downloading the Ansible role 'docker' with ansible-galaxy & run Ansible role to install Docker on Ubuntu
-      run: |
-        pipenv run ansible-galaxy install -r requirements.yml -p roles/
-        pipenv run ansible-playbook playbook.yml
+      - name: Destroy pre-created Pulumi instances
+        run: pulumi destroy --yes
 
-    - name: Install Pulumi CLI using the install-pulumi-cli GitHub Action needed for pytest hosts variable
-      uses: pulumi/action-install-pulumi-cli@v1.0.1
+      - name: Generate EC2 keypair and save private key locally (since Pulumi isn't able to do that now)
+        run: pipenv run ansible-playbook keypair.yml
 
-    - name: Use Testinfra with Pytest to execute our tests
-      run: py.test -v tests/test_docker.py --ssh-identity-file=.ec2ssh/pulumi_key --ssh-config=tests/pytest_ssh_config --hosts='ssh://'$(pulumi stack output publicIp)
+      - name: Execute Pulumi to create EC2 instances
+        run: pulumi up --yes
 
-    - name: Destroy Pulumi instances after successful tests
-      uses: pulumi/actions@v1
-      with:
-        command: destroy
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+      - name: Downloading the Ansible role 'docker' with ansible-galaxy & run Ansible role to install Docker on Ubuntu
+        run: |
+          pipenv run ansible-galaxy install -r requirements.yml -p roles/
+          pipenv run ansible-playbook playbook.yml
+
+      - name: Use Testinfra with Pytest to execute our tests
+        run: pipenv run py.test -v tests/test_docker.py --ssh-identity-file=.ec2ssh/pulumi_key --ssh-config=tests/pytest_ssh_config --hosts='ssh://'$(pulumi stack output publicIp)
+
+      - name: Destroy Pulumi instances after successful tests
+        run: pulumi destroy --yes
 ```
 
 
