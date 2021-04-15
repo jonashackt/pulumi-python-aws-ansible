@@ -26,7 +26,7 @@ jobs:
           python-version: '3.9'
 
       - name: Install Pulumi CLI
-        uses: pulumi/action-install-pulumi-cli@v1.0.1
+        uses: pulumi/action-install-pulumi-cli@v1.0.2
 
       - name: Install required dependencies with pipenv & login to Pulumi app & select stack
         run: |
